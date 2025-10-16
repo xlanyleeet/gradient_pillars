@@ -1,0 +1,88 @@
+# ========================================
+# English Language
+# ========================================
+
+prefix: "&8[&6Gradient Pillars&8]&r "
+
+# Commands
+commands:
+  no-permission: "&cYou don't have permission to execute this command!"
+  player-only: "&cThis command can only be executed as a player!"
+  usage: "&cUsage: &f{usage}"
+  reload: "&aConfiguration reloaded successfully!"
+
+# Hub
+hub:
+  set: "&aHub set at your position!"
+  teleported: "&aYou have been teleported to the hub!"
+  
+# Game
+game:
+  join:
+    success: "&aYou joined the game!"
+    already-in-game: "&cYou are already in a game!"
+    game-full: "&cThe game is full!"
+    game-started: "&cThe game has already started!"
+  
+  leave:
+    success: "&aYou left the game!"
+    not-in-game: "&cYou are not in a game!"
+  
+  start:
+    countdown: "&eGame starting in &6{time} &eseconds..."
+    started: "&aGame started! Good luck!"
+    not-enough-players: "&cNot enough players to start the game!"
+  
+  end:
+    winner: "&6&l{player} &awon!"
+    no-winner: "&cDraw! No winner!"
+    game-ended: "&eGame ended!"
+  
+  death:
+    eliminated: "&c{player} has been eliminated!"
+    remaining: "&ePlayers remaining: &6{count}"
+  
+  items:
+    received: "&aYou received an item: &6{item}"
+    next-in: "&eNext item in &6{time} &eseconds"
+  
+  spectator:
+    now-spectating: "&eYou are now spectating!"
+  
+  lobby:
+    leave-item: "&cLeave Arena"
+  
+# Arena
+arena:
+  created: "&aArena &6{arena} &acreated successfully! Use setup commands to configure."
+  already-exists: "&cArena &6{arena} &calready exists!"
+  not-found: "&cArena &6{arena} &cnot found!"
+  edit-mode: "&aEditing arena &6{arena}&a. Use setup commands to make changes."
+  
+  setup:
+    pillar-added: "&aPillar #{number} added at your position!"
+    lobby-set: "&aLobby set at your position!"
+    spectator-set: "&aSpectator point set at your position!"
+    world-set: "&aArena world set: &6{world}"
+    saved: "&aArena saved to arenas/{arena}.yml!"
+    
+  backup:
+    creating: "&eCreating world backup..."
+    created: "&aBackup created!"
+    restoring: "&eRestoring world..."
+    restored: "&aWorld restored!"
+    failed: "&cBackup operation failed!"
+
+# BossBar
+bossbar:
+  game-time: "Game Time: {time}"
+  waiting: "Waiting for players... ({current}/{max})"
+  starting: "Starting in {time}..."
+
+# Errors
+errors:
+  general: "&cAn error occurred! Check console."
+  arena-not-found: "&cArena not found!"
+  arena-not-setup: "&cArena is not set up!"
+  world-not-found: "&cWorld not found!"
+  invalid-number: "&cInvalid number! Use a number from 1 and above."

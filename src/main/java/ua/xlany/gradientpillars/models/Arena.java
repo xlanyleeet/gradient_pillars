@@ -1,0 +1,86 @@
+package ua.xlany.gradientpillars.models;
+
+import org.bukkit.Location;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class Arena {
+
+    private final String name;
+    private String worldName;
+    private Location lobby;
+    private Location spectator;
+    private List<Location> pillars;
+
+    public Arena(String name) {
+        this.name = name;
+        this.pillars = new ArrayList<>();
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getWorldName() {
+        return worldName;
+    }
+
+    public void setWorldName(String worldName) {
+        this.worldName = worldName;
+    }
+
+    public Location getLobby() {
+        return lobby;
+    }
+
+    public void setLobby(Location lobby) {
+        this.lobby = lobby;
+        if (worldName == null && lobby != null) {
+            worldName = lobby.getWorld().getName();
+        }
+    }
+
+    public Location getSpectator() {
+        return spectator;
+    }
+
+    public void setSpectator(Location spectator) {
+        this.spectator = spectator;
+    }
+
+    public List<Location> getPillars() {
+        return new ArrayList<>(pillars);
+    }
+
+    public void addPillar(Location pillar) {
+        pillars.add(pillar);
+    }
+
+    public void setPillar(int index, Location pillar) {
+        // Розширити список якщо потрібно
+        while (pillars.size() <= index) {
+            pillars.add(null);
+        }
+        pillars.set(index, pillar);
+    }
+
+    public void removePillar(int index) {
+        if (index >= 0 && index < pillars.size()) {
+            pillars.remove(index);
+        }
+    }
+
+    public void clearPillars() {
+        pillars.clear();
+    }
+
+    public boolean isSetup() {
+        return worldName != null && lobby != null && spectator != null && !pillars.isEmpty()
+                && pillars.stream().anyMatch(p -> p != null);
+    }
+
+    public int getPillarCount() {
+        return (int) pillars.stream().filter(p -> p != null).count();
+    }
+}

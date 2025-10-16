@@ -1,0 +1,21 @@
+name: GradientPillars
+version: '${project.version}'
+main: ua.xlany.gradientpillars.GradientPillars
+api-version: '1.21'
+author: xlany
+description: Fortune Pillars minigame plugin
+website: https://github.com/xlany
+
+commands:
+  gp:
+    description: Main command for Gradient Pillars
+    usage: /gp <join|leave|setup|reload>
+    aliases: [gradientpillars, pillars]
+
+permissions:
+  gradientpillars.admin:
+    description: Allows access to admin commands
+    default: op
+  gradientpillars.play:
+    description: Allows joining games
+    default: true

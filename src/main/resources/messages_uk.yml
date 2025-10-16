@@ -1,0 +1,88 @@
+# ========================================
+# Українська мова
+# ========================================
+
+prefix: "&8[&6Gradient Pillars&8]&r "
+
+# Команди
+commands:
+  no-permission: "&cУ вас немає прав для виконання цієї команди!"
+  player-only: "&cЦю команду можна виконати тільки як гравець!"
+  usage: "&cВикористання: &f{usage}"
+  reload: "&aКонфігурацію успішно перезавантажено!"
+
+# Хаб
+hub:
+  set: "&aХаб встановлено на вашій позиції!"
+  teleported: "&aВи телепортовані в хаб!"
+  
+# Гра
+game:
+  join:
+    success: "&aВи приєдналися до гри!"
+    already-in-game: "&cВи вже в грі!"
+    game-full: "&cГра заповнена!"
+    game-started: "&cГра вже почалася!"
+  
+  leave:
+    success: "&aВи покинули гру!"
+    not-in-game: "&cВи не в грі!"
+  
+  start:
+    countdown: "&eГра почнеться через &6{time} &eсекунд..."
+    started: "&aГра почалася! Удачі!"
+    not-enough-players: "&cНедостатньо гравців для початку гри!"
+  
+  end:
+    winner: "&6&l{player} &aпереміг!"
+    no-winner: "&cНічия! Немає переможця!"
+    game-ended: "&eГра завершена!"
+  
+  death:
+    eliminated: "&c{player} був виключений!"
+    remaining: "&eЗалишилось гравців: &6{count}"
+  
+  items:
+    received: "&aВи отримали предмет: &6{item}"
+    next-in: "&eНаступний предмет через &6{time} &eсекунд"
+  
+  spectator:
+    now-spectating: "&eТепер ви спостерігач!"
+  
+  lobby:
+    leave-item: "&cПокинути арену"
+  
+# Арена
+arena:
+  created: "&aАрену &6{arena} &aуспішно створено! Використовуйте команди setup для налаштування."
+  already-exists: "&cАрена &6{arena} &cвже існує!"
+  not-found: "&cАрену &6{arena} &cне знайдено!"
+  edit-mode: "&aРежим редагування арени &6{arena}&a. Використовуйте команди setup для змін."
+  
+  setup:
+    pillar-added: "&aСтовп #{number} додано на вашій позиції!"
+    lobby-set: "&aЛобі встановлено на вашій позиції!"
+    spectator-set: "&aТочка спостерігача встановлена на вашій позиції!"
+    world-set: "&aСвіт арени встановлено: &6{world}"
+    saved: "&aАрена збережена у файл arenas/{arena}.yml!"
+    
+  backup:
+    creating: "&eСтворення резервної копії світу..."
+    created: "&aРезервна копія створена!"
+    restoring: "&eВідновлення світу..."
+    restored: "&aСвіт відновлено!"
+    failed: "&cПомилка при роботі з резервною копією!"
+
+# BossBar
+bossbar:
+  game-time: "Час гри: {time}"
+  waiting: "Очікування гравців... ({current}/{max})"
+  starting: "Початок через {time}..."
+
+# Помилки
+errors:
+  general: "&cВиникла помилка! Перевірте консоль."
+  arena-not-found: "&cАрену не знайдено!"
+  arena-not-setup: "&cАрена не налаштована!"
+  world-not-found: "&cСвіт не знайдено!"
+  invalid-number: "&cНеправильний номер! Використовуйте число від 1 і вище."
