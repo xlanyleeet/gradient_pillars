@@ -30,7 +30,7 @@ public class PlayerListener implements Listener {
             event.setDroppedExp(0);
 
             // Видалити повідомлення про смерть
-            event.setDeathMessage(null);
+            event.deathMessage(null);
 
             // Обробити смерть гравця (елімінація, повідомлення)
             plugin.getGameManager().handlePlayerDeath(player);

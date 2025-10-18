@@ -77,7 +77,6 @@ public class GameManager {
             player.teleport(lobby);
         }
 
-        // Очистити інвентар
         player.getInventory().clear();
         player.setHealth(20.0);
         player.setFoodLevel(20);
