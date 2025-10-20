@@ -22,6 +22,7 @@ public class Game {
     private int itemTask;
     private long gameStartTime;
     private int itemCooldown;
+    private boolean wasActive; // Чи гра була активною (для визначення чи треба регенерувати світ)
 
     public Game(String id, GameManager gameManager, String arenaName) {
         this.id = id;
@@ -33,6 +34,7 @@ public class Game {
         this.pillarAssignments = new HashMap<>();
         this.state = GameState.WAITING;
         this.itemCooldown = 0;
+        this.wasActive = false;
     }
 
     public String getId() {
@@ -64,7 +66,8 @@ public class Game {
     }
 
     public boolean addPlayer(UUID playerId) {
-        if (players.size() >= gameManager.getPlugin().getConfigManager().getMaxPlayers()) {
+        Arena arena = gameManager.getPlugin().getArenaManager().getArena(arenaName);
+        if (arena == null || players.size() >= arena.getMaxPlayers()) {
             return false;
         }
         players.add(playerId);
@@ -164,5 +167,44 @@ public class Game {
 
     public void resetItemCooldown() {
         this.itemCooldown = gameManager.getPlugin().getConfigManager().getItemInterval();
+    }
+
+    public boolean wasActive() {
+        return wasActive;
+    }
+
+    public void setWasActive(boolean wasActive) {
+        this.wasActive = wasActive;
+    }
+
+    /**
+     * Скинути гру до початкового стану (для перевикористання)
+     */
+    public void reset() {
+        // Очистити всіх гравців
+        players.clear();
+        alivePlayers.clear();
+        spectators.clear();
+        pillarAssignments.clear();
+
+        // Скинути стан
+        state = GameState.WAITING;
+
+        // Видалити BossBar якщо існує
+        if (bossBar != null) {
+            bossBar = null;
+        }
+
+        // Скинути таски
+        countdownTask = 0;
+        gameTask = 0;
+        itemTask = 0;
+
+        // Скинути час та кулдаун
+        gameStartTime = 0;
+        itemCooldown = 0;
+
+        // Скинути прапорець активності
+        wasActive = false;
     }
 }

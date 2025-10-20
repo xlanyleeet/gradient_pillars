@@ -2,25 +2,20 @@ package ua.xlany.gradientpillars.managers;
 
 import org.bukkit.Bukkit;
 import org.bukkit.World;
+import org.bukkit.WorldCreator;
 import ua.xlany.gradientpillars.GradientPillars;
+import ua.xlany.gradientpillars.utils.ZipUtil;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.*;
-import java.nio.file.attribute.BasicFileAttributes;
 
 public class WorldManager {
-
     private final GradientPillars plugin;
 
     public WorldManager(GradientPillars plugin) {
         this.plugin = plugin;
     }
 
-    /**
-     * Створити бекап світу
-     */
-    public boolean createBackup(String worldName, File backupFolder) {
+    public boolean createBackup(String worldName, File backupZipFile) {
         World world = Bukkit.getWorld(worldName);
 
         if (world == null) {
@@ -29,151 +24,97 @@ public class WorldManager {
         }
 
         try {
-            // Зберегти світ перед копіюванням
+            // Зберегти світ перед архівацією
             world.save();
-            plugin.getLogger().info("Створюю бекап світу " + worldName + "...");
-
             File worldFolder = world.getWorldFolder();
-
-            // Видалити старий бекап якщо існує
-            if (backupFolder.exists()) {
-                deleteDirectory(backupFolder.toPath());
-                plugin.getLogger().info("Видалено старий бекап");
-            }
-
-            // Створити новий бекап
-            copyDirectory(worldFolder.toPath(), backupFolder.toPath());
-
-            long fileCount = countFiles(backupFolder.toPath());
-            plugin.getLogger().info("Створено бекап світу " + worldName + " (файлів: " + fileCount + ")");
-
+            ZipUtil.zipWorld(worldFolder, backupZipFile);
+            plugin.getLogger().info("Створено ZIP-бекап: " + backupZipFile.getName()
+                    + " (" + (backupZipFile.length() / 1024) + " KB)");
             return true;
 
-        } catch (IOException e) {
-            plugin.getLogger().severe("Помилка при створенні бекапу світу: " + e.getMessage());
+        } catch (Exception e) {
+            plugin.getLogger().severe("Помилка при створенні ZIP-бекапу: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
     }
 
-    /**
-     * Відновити світ з бекапу
-     */
-    public boolean restoreFromBackup(String worldName, File backupFolder) {
-        if (!backupFolder.exists()) {
-            plugin.getLogger().warning("Бекап не знайдено для світу: " + worldName);
-            return false;
+    public void restoreFromBackup(String worldName, File backupZipFile) {
+        if (!backupZipFile.exists()) {
+            plugin.getLogger().warning("❌ ZIP-бекап не знайдено: " + backupZipFile);
+            return;
         }
 
         World world = Bukkit.getWorld(worldName);
         if (world == null) {
-            plugin.getLogger().warning("Світ не знайдено: " + worldName);
-            return false;
-        }
-
-        try {
-            plugin.getLogger().info("Відновлюю світ " + worldName + "...");
-
-            // Вивантажити світ
-            Bukkit.unloadWorld(world, false);
-
-            File worldFolder = new File(Bukkit.getWorldContainer(), worldName);
-
-            // Видалити поточний світ
-            deleteDirectory(worldFolder.toPath());
-
-            // Відновити з бекапу
-            copyDirectory(backupFolder.toPath(), worldFolder.toPath());
-
-            // Завантажити світ знову
-            Bukkit.createWorld(new org.bukkit.WorldCreator(worldName));
-
-            plugin.getLogger().info("Відновлено світ " + worldName);
-            return true;
-
-        } catch (IOException e) {
-            plugin.getLogger().severe("Помилка при відновленні світу: " + e.getMessage());
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    /**
-     * Копіювати директорію
-     */
-    private void copyDirectory(Path source, Path target) throws IOException {
-        Files.walkFileTree(source, new SimpleFileVisitor<Path>() {
-            @Override
-            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-                // Пропустити uid.dat та session.lock
-                String dirName = dir.getFileName().toString();
-                if (dirName.equals("session.lock") || dirName.equals("uid.dat")) {
-                    return FileVisitResult.SKIP_SUBTREE;
-                }
-
-                Path targetDir = target.resolve(source.relativize(dir));
-                try {
-                    Files.createDirectories(targetDir);
-                } catch (IOException e) {
-                    plugin.getLogger().warning("Не вдалося створити папку: " + targetDir + " - " + e.getMessage());
-                }
-                return FileVisitResult.CONTINUE;
-            }
-
-            @Override
-            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                // Пропустити session.lock та uid.dat
-                String fileName = file.getFileName().toString();
-                if (fileName.equals("session.lock") || fileName.equals("uid.dat")) {
-                    return FileVisitResult.CONTINUE;
-                }
-
-                try {
-                    Path targetFile = target.resolve(source.relativize(file));
-                    Files.copy(file, targetFile, StandardCopyOption.REPLACE_EXISTING,
-                            StandardCopyOption.COPY_ATTRIBUTES);
-                } catch (IOException e) {
-                    plugin.getLogger()
-                            .warning("Не вдалося скопіювати файл: " + file.getFileName() + " - " + e.getMessage());
-                }
-                return FileVisitResult.CONTINUE;
-            }
-
-            @Override
-            public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
-                plugin.getLogger().warning("Не вдалося відвідати файл: " + file + " - " + exc.getMessage());
-                return FileVisitResult.CONTINUE;
-            }
-        });
-    }
-
-    /**
-     * Видалити директорію
-     */
-    private void deleteDirectory(Path path) throws IOException {
-        if (!Files.exists(path)) {
+            plugin.getLogger().warning("❌ Світ не завантажено: " + worldName);
             return;
         }
 
-        Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
-            @Override
-            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                Files.delete(file);
-                return FileVisitResult.CONTINUE;
-            }
+        // === КРОК 1: Телепортація та вивантаження (СИНХРОННО) ===
+        plugin.getLogger().info("▶ Крок 1: Телепортація гравців...");
+        World defaultWorld = Bukkit.getWorlds().get(0);
+        int playerCount = world.getPlayers().size();
 
-            @Override
-            public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-                Files.delete(dir);
-                return FileVisitResult.CONTINUE;
+        for (org.bukkit.entity.Player player : world.getPlayers()) {
+            player.teleport(defaultWorld.getSpawnLocation());
+        }
+        // Зберегти та вивантажити світ
+        world.save();
+
+        boolean unloaded = Bukkit.unloadWorld(world, false);
+        if (!unloaded) {
+            plugin.getLogger().severe("❌ НЕ ВДАЛОСЯ ВИВАНТАЖИТИ СВІТ!");
+            return;
+        }
+
+        // === КРОК 2: Розпакування ZIP (АСИНХРОННО) ===
+        File worldFolder = new File(Bukkit.getWorldContainer(), worldName);
+
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                long startTime = System.currentTimeMillis();
+                ZipUtil.unzipWorld(backupZipFile, worldFolder);
+                long time = System.currentTimeMillis() - startTime;
+                plugin.getLogger().info("✓ Розпаковано за " + time + " мс");
+                deleteWorldTrash(worldName);
+                Bukkit.getScheduler().runTask(plugin, () -> {
+                    plugin.getLogger().info("▶ Крок 4: Завантаження світу...");
+
+                    WorldCreator wc = new WorldCreator(worldName);
+                    wc.generateStructures(false);
+
+                    World newWorld = Bukkit.createWorld(wc);
+                    if (newWorld == null) {
+                        plugin.getLogger().severe("❌ НЕ ВДАЛОСЯ СТВОРИТИ СВІТ!");
+                        return;
+                    }
+
+                    newWorld.setAutoSave(true);
+                    plugin.getLogger().info("✓ Світ завантажено");
+                    Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                        newWorld.getChunkAt(newWorld.getSpawnLocation());
+                    }, 20L);
+                });
+
+            } catch (Exception e) {
+                plugin.getLogger().severe("Помилка: " + e.getMessage());
+                e.printStackTrace();
             }
         });
     }
 
-    /**
-     * Порахувати кількість файлів в директорії
-     */
-    private long countFiles(Path directory) throws IOException {
-        return Files.walk(directory).filter(Files::isRegularFile).count();
+    private void deleteWorldTrash(String worldName) {
+        for (File file : new File[] {
+                new File(Bukkit.getWorldContainer(), worldName + "/level.dat_old"),
+                new File(Bukkit.getWorldContainer(), worldName + "/session.lock"),
+                new File(Bukkit.getWorldContainer(), worldName + "/uid.dat")
+        }) {
+            if (file.exists()) {
+                if (!file.delete()) {
+                    plugin.getLogger().warning("Не вдалося видалити: " + file.getName());
+                }
+            }
+        }
     }
 }

@@ -12,10 +12,14 @@ public class Arena {
     private Location lobby;
     private Location spectator;
     private List<Location> pillars;
+    private int minPlayers;
+    private int maxPlayers;
 
     public Arena(String name) {
         this.name = name;
         this.pillars = new ArrayList<>();
+        this.minPlayers = 2; // За замовчуванням
+        this.maxPlayers = 16; // За замовчуванням
     }
 
     public String getName() {
@@ -77,10 +81,26 @@ public class Arena {
 
     public boolean isSetup() {
         return worldName != null && lobby != null && spectator != null && !pillars.isEmpty()
-                && pillars.stream().anyMatch(p -> p != null);
+                && pillars.stream().anyMatch(p -> p != null) && minPlayers > 0 && maxPlayers >= minPlayers;
     }
 
     public int getPillarCount() {
         return (int) pillars.stream().filter(p -> p != null).count();
+    }
+
+    public int getMinPlayers() {
+        return minPlayers;
+    }
+
+    public void setMinPlayers(int minPlayers) {
+        this.minPlayers = minPlayers;
+    }
+
+    public int getMaxPlayers() {
+        return maxPlayers;
+    }
+
+    public void setMaxPlayers(int maxPlayers) {
+        this.maxPlayers = maxPlayers;
     }
 }

@@ -64,14 +64,6 @@ public class ConfigManager {
     }
 
     // Game settings
-    public int getMinPlayers() {
-        return config.getInt("game.min-players", 2);
-    }
-
-    public int getMaxPlayers() {
-        return config.getInt("game.max-players", 16);
-    }
-
     public int getCountdownTime() {
         return config.getInt("game.countdown-time", 10);
     }

@@ -115,6 +115,10 @@ public class ArenaManager {
             }
         }
 
+        // Завантажити налаштування гравців
+        arena.setMinPlayers(config.getInt("arena.min-players", 2));
+        arena.setMaxPlayers(config.getInt("arena.max-players", 16));
+
         return arena;
     }
 
@@ -159,13 +163,17 @@ public class ArenaManager {
             }
         }
 
+        // Зберегти налаштування гравців
+        config.set("arena.min-players", arena.getMinPlayers());
+        config.set("arena.max-players", arena.getMaxPlayers());
+
         try {
             config.save(configFile);
 
-            // Створити бекап світу при збереженні арени
+            // Створити ZIP-бекап світу при збереженні арени
             if (arena.getWorldName() != null && !arena.getWorldName().isEmpty()) {
-                File backupFolder = new File(arenaDir, "world_backup");
-                plugin.getWorldManager().createBackup(arena.getWorldName(), backupFolder);
+                File backupZip = new File(arenaDir, "world_backup.zip");
+                plugin.getWorldManager().createBackup(arena.getWorldName(), backupZip);
             }
 
             arenas.put(arena.getName(), arena);
@@ -179,6 +187,8 @@ public class ArenaManager {
             plugin.getLogger()
                     .info("  Спектатор: " + (arena.getSpectator() != null ? "встановлено" : "не встановлено"));
             plugin.getLogger().info("  Стовпів: " + arena.getPillarCount());
+            plugin.getLogger().info("  Мін. гравців: " + arena.getMinPlayers());
+            plugin.getLogger().info("  Макс. гравців: " + arena.getMaxPlayers());
             plugin.getLogger().info("  Налаштована: " + (arena.isSetup() ? "ТАК" : "НІ"));
         } catch (IOException e) {
             plugin.getLogger().severe("Помилка при збереженні арени: " + e.getMessage());
@@ -216,6 +226,59 @@ public class ArenaManager {
                 .orElse(null);
     }
 
+    /**
+     * Видалити арену
+     * 
+     * @param name назва арени
+     * @return true якщо успішно видалено
+     */
+    public boolean deleteArena(String name) {
+        Arena arena = getArena(name);
+        if (arena == null) {
+            return false;
+        }
+
+        try {
+            // Видалити з мапи
+            arenas.remove(name);
+            arenaCache.remove(name);
+
+            // Видалити папку арени повністю (включаючи всі файли)
+            File arenaDir = new File(plugin.getDataFolder(), "arenas/" + name);
+            if (arenaDir.exists()) {
+                deleteDirectory(arenaDir);
+            }
+
+            plugin.getLogger().info("Видалено арену: " + name);
+            return true;
+        } catch (Exception e) {
+            plugin.getLogger().severe("Помилка при видаленні арени " + name + ": " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Рекурсивно видалити директорію з усім вмістом
+     * 
+     * @param directory папка для видалення
+     * @return true якщо успішно
+     */
+    private boolean deleteDirectory(File directory) {
+        if (directory.exists()) {
+            File[] files = directory.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    if (file.isDirectory()) {
+                        deleteDirectory(file);
+                    } else {
+                        file.delete();
+                    }
+                }
+            }
+        }
+        return directory.delete();
+    }
+
     // Відновлення світу
     public boolean restoreWorld(String arenaName) {
         if (!plugin.getConfigManager().isAutoRestore()) {
@@ -230,8 +293,10 @@ public class ArenaManager {
 
         String worldName = arena.getWorldName();
         File arenaDir = new File(plugin.getDataFolder(), "arenas/" + arenaName);
-        File backupFolder = new File(arenaDir, "world_backup");
+        File backupZip = new File(arenaDir, "world_backup.zip");
 
-        return plugin.getWorldManager().restoreFromBackup(worldName, backupFolder);
+        // Використовуємо метод відновлення з ZIP
+        plugin.getWorldManager().restoreFromBackup(worldName, backupZip);
+        return true;
     }
 }

@@ -42,14 +42,37 @@ public class GameManager {
             return false;
         }
 
-        // Знайти доступну гру або створити нову
-        Game game = findAvailableGame();
+        // Спочатку знайти доступну арену
+        Arena arena = plugin.getArenaManager().getFirstAvailableArena();
+        if (arena == null || !arena.isSetup()) {
+            return false;
+        }
+
+        // Перевірити чи вже існує гра на цій арені
+        Game game = findGameByArena(arena.getName());
+
+        // Якщо гри немає - створити нову
         if (game == null) {
-            Arena arena = plugin.getArenaManager().getFirstAvailableArena();
-            if (arena == null || !arena.isSetup()) {
+            game = createGame(arena.getName());
+        } else {
+            // Якщо гра існує - перевірити чи можна до неї приєднатись
+
+            // Заборонити вхід під час ACTIVE, ENDING, RESTORING
+            if (game.getState() == GameState.ACTIVE || game.getState() == GameState.ENDING) {
+                player.sendMessage(plugin.getMessageManager().getPrefixedComponent("game.join.already-started"));
                 return false;
             }
-            game = createGame(arena.getName());
+
+            if (game.getState() == GameState.RESTORING) {
+                player.sendMessage(plugin.getMessageManager().getPrefixedComponent("game.world-restoring"));
+                return false;
+            }
+
+            // Перевірити чи не повна гра
+            if (game.getPlayerCount() >= arena.getMaxPlayers()) {
+                player.sendMessage(plugin.getMessageManager().getPrefixedComponent("game.join.full"));
+                return false;
+            }
         }
 
         if (!game.addPlayer(player.getUniqueId())) {
@@ -59,8 +82,7 @@ public class GameManager {
         playerGames.put(player.getUniqueId(), game);
 
         // Телепортувати в лобі
-        Arena arena = plugin.getArenaManager().getArena(game.getArenaName());
-        if (arena != null && arena.getLobby() != null) {
+        if (arena.getLobby() != null) {
             Location lobby = arena.getLobby().clone();
 
             // Переконатись що світ встановлено
@@ -77,6 +99,7 @@ public class GameManager {
             player.teleport(lobby);
         }
 
+        // Очистити інвентар
         player.getInventory().clear();
         player.setHealth(20.0);
         player.setFoodLevel(20);
@@ -92,7 +115,9 @@ public class GameManager {
         updateWaitingBossBar(game);
 
         // Перевірити чи можна почати
-        if (game.getPlayerCount() >= plugin.getConfigManager().getMinPlayers()
+        // Перезавантажити арену для актуальних налаштувань
+        arena = plugin.getArenaManager().getArena(game.getArenaName());
+        if (arena != null && game.getPlayerCount() >= arena.getMinPlayers()
                 && game.getState() == GameState.WAITING) {
             startCountdown(game);
         }
@@ -120,8 +145,9 @@ public class GameManager {
         player.sendMessage(plugin.getMessageManager().getPrefixedComponent("game.leave.success"));
 
         // Якщо гра ще не почалася і гравців недостатньо
-        if (game.getState() == GameState.COUNTDOWN &&
-                game.getPlayerCount() < plugin.getConfigManager().getMinPlayers()) {
+        Arena arena = plugin.getArenaManager().getArena(game.getArenaName());
+        if (arena != null && game.getState() == GameState.COUNTDOWN &&
+                game.getPlayerCount() < arena.getMinPlayers()) {
             cancelCountdown(game);
         }
 
@@ -136,10 +162,9 @@ public class GameManager {
         }
     }
 
-    private Game findAvailableGame() {
+    private Game findGameByArena(String arenaName) {
         return games.values().stream()
-                .filter(g -> g.getState() == GameState.WAITING || g.getState() == GameState.COUNTDOWN)
-                .filter(g -> g.getPlayerCount() < plugin.getConfigManager().getMaxPlayers())
+                .filter(g -> g.getArenaName().equals(arenaName))
                 .findFirst()
                 .orElse(null);
     }
@@ -154,7 +179,8 @@ public class GameManager {
 
             @Override
             public void run() {
-                if (game.getPlayerCount() < plugin.getConfigManager().getMinPlayers()) {
+                Arena currentArena = plugin.getArenaManager().getArena(game.getArenaName());
+                if (currentArena == null || game.getPlayerCount() < currentArena.getMinPlayers()) {
                     cancelCountdown(game);
                     return;
                 }
@@ -197,6 +223,7 @@ public class GameManager {
 
     private void startGame(Game game) {
         game.setState(GameState.ACTIVE);
+        game.setWasActive(true); // Позначити що гра почалась (для регенерації світу)
         game.setGameStartTime(System.currentTimeMillis());
         game.resetItemCooldown();
 
@@ -370,21 +397,48 @@ public class GameManager {
         }
 
         // Затримка перед телепортацією в хаб (5 секунд)
-        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+        // Перевіряємо чи плагін ще активний перед створенням таску
+        if (!plugin.isEnabled()) {
+            // Плагін вимикається - просто телепортуємо гравців і скидаємо гру
             for (UUID playerId : game.getPlayers()) {
                 Player player = Bukkit.getPlayer(playerId);
                 if (player != null) {
-                    // Телепортувати в хаб
+                    teleportToHub(player);
+                    playerGames.remove(playerId);
+                }
+            }
+            game.reset();
+            return;
+        }
+
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            // Телепортувати всіх гравців в хаб
+            for (UUID playerId : game.getPlayers()) {
+                Player player = Bukkit.getPlayer(playerId);
+                if (player != null) {
                     teleportToHub(player);
                     playerGames.remove(playerId);
                 }
             }
 
-            // Відновити світ після телепортації
-            plugin.getArenaManager().restoreWorld(game.getArenaName());
+            // Перевірити чи гра була активною (чи треба регенерувати світ)
+            boolean needsRegeneration = game.wasActive();
 
-            // Видалити гру
-            games.remove(game.getId());
+            // СПОЧАТКУ скидаємо гру (очищуємо гравців, стан → WAITING)
+            game.reset();
+
+            if (needsRegeneration) {
+                // Гра була активною - відновлюємо світ
+                plugin.getLogger()
+                        .info("Гру на арені '" + game.getArenaName() + "' скинуто. Починаю відновлення світу...");
+                plugin.getArenaManager().restoreWorld(game.getArenaName());
+            } else {
+                // Гра не почалась (був тільки лобі) - світ чистий, регенерація не потрібна
+                plugin.getLogger().info("Гру на арені '" + game.getArenaName()
+                        + "' скинуто. Світ не змінювався, регенерація пропущена.");
+            }
+
+            // Гра готова приймати нових гравців!
         }, 100L); // 5 секунд = 100 тіків
     }
 
@@ -418,6 +472,11 @@ public class GameManager {
             return;
         }
 
+        Arena arena = plugin.getArenaManager().getArena(game.getArenaName());
+        if (arena == null) {
+            return;
+        }
+
         if (game.getBossBar() == null) {
             BossBar bossBar = BossBar.bossBar(
                     Component.text("Waiting..."),
@@ -429,11 +488,11 @@ public class GameManager {
 
         String message = plugin.getMessageManager().getMessage("bossbar.waiting",
                 "current", String.valueOf(game.getPlayerCount()),
-                "max", String.valueOf(plugin.getConfigManager().getMaxPlayers()));
+                "max", String.valueOf(arena.getMaxPlayers()));
 
         game.getBossBar().name(Component.text(message));
         game.getBossBar().progress(
-                (float) game.getPlayerCount() / plugin.getConfigManager().getMaxPlayers());
+                Math.min(1.0f, (float) game.getPlayerCount() / arena.getMaxPlayers()));
 
         // Додати всіх гравців
         for (UUID playerId : game.getPlayers()) {
@@ -502,6 +561,16 @@ public class GameManager {
 
     public boolean isInGame(UUID playerId) {
         return playerGames.containsKey(playerId);
+    }
+
+    /**
+     * Отримати гру по імені арени
+     * 
+     * @param arenaName назва арени
+     * @return гра або null якщо не знайдено
+     */
+    public Game getGameByArena(String arenaName) {
+        return games.get(arenaName);
     }
 
     private void giveLeaveItem(Player player) {

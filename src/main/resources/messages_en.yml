@@ -22,7 +22,10 @@ game:
     success: "&aYou joined the game!"
     already-in-game: "&cYou are already in a game!"
     game-full: "&cThe game is full!"
+    already-started: "&cThe game has already started! Wait for the next round."
     game-started: "&cThe game has already started!"
+  
+  world-restoring: "&eThe world is being restored after the previous game. Please wait a few seconds..."
   
   leave:
     success: "&aYou left the game!"
@@ -52,18 +55,19 @@ game:
   lobby:
     leave-item: "&cLeave Arena"
   
-# Arena
+# Arenas
 arena:
-  created: "&aArena &6{arena} &acreated successfully! Use setup commands to configure."
+  created: "&aArena &6{arena} &asuccessfully created! Use /gp setup to configure."
   already-exists: "&cArena &6{arena} &calready exists!"
   not-found: "&cArena &6{arena} &cnot found!"
-  edit-mode: "&aEditing arena &6{arena}&a. Use setup commands to make changes."
   
   setup:
     pillar-added: "&aPillar #{number} added at your position!"
     lobby-set: "&aLobby set at your position!"
     spectator-set: "&aSpectator point set at your position!"
     world-set: "&aArena world set: &6{world}"
+    min-players-set: "&aMinimum players set: &6{count}"
+    max-players-set: "&aMaximum players set: &6{count}"
     saved: "&aArena saved to arenas/{arena}.yml!"
     
   backup:
