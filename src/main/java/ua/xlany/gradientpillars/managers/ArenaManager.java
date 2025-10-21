@@ -299,4 +299,24 @@ public class ArenaManager {
         plugin.getWorldManager().restoreFromBackup(worldName, backupZip);
         return true;
     }
+
+    public void rebindArenaWorld(String worldName, World world) {
+        if (worldName == null || world == null) {
+            return;
+        }
+
+        for (Arena arena : arenas.values()) {
+            if (worldName.equalsIgnoreCase(arena.getWorldName())) {
+                arena.rebindWorld(world);
+                plugin.getLogger().info("Локації арени '" + arena.getName() + "' переприв'язані до світу " + worldName);
+            }
+        }
+
+        for (Arena arena : arenaCache.values()) {
+            if (worldName.equalsIgnoreCase(arena.getWorldName())) {
+                arena.rebindWorld(world);
+                plugin.getLogger().info("Локації арени (кеш) '" + arena.getName() + "' переприв'язані до світу " + worldName);
+            }
+        }
+    }
 }

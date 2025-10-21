@@ -91,6 +91,7 @@ public class WorldManager {
                     }
 
                     newWorld.setAutoSave(true);
+                    plugin.getArenaManager().rebindArenaWorld(worldName, newWorld);
                     plugin.getLogger().info("✓ Світ завантажено");
                     Bukkit.getScheduler().runTaskLater(plugin, () -> {
                         newWorld.getChunkAt(newWorld.getSpawnLocation());
