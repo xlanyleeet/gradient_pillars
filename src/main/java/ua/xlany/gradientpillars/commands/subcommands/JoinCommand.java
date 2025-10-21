@@ -5,8 +5,10 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
 import ua.xlany.gradientpillars.GradientPillars;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 public class JoinCommand implements SubCommand {
 
@@ -42,6 +44,21 @@ public class JoinCommand implements SubCommand {
     @Nullable
     @Override
     public List<String> tabComplete(CommandSender sender, String[] args) {
+        if (args.length == 1) {
+            String prefix = args[0] == null ? "" : args[0].toLowerCase(Locale.ROOT);
+            List<String> suggestions = new ArrayList<>();
+
+            plugin.getArenaManager().getArenas().stream()
+                    .filter(arena -> arena != null && arena.isSetup())
+                    .map(arena -> arena.getName() == null ? "" : arena.getName())
+                    .filter(name -> !name.isEmpty())
+                    .filter(name -> name.toLowerCase(Locale.ROOT).startsWith(prefix))
+                    .forEach(suggestions::add);
+
+            suggestions.sort(String::compareToIgnoreCase);
+            return suggestions;
+        }
+
         return Collections.emptyList();
     }
 
