@@ -14,6 +14,7 @@ public class GradientPillars extends JavaPlugin {
 
     // Managers
     private ConfigManager configManager;
+    private ItemsConfigManager itemsConfigManager;
     private MessageManager messageManager;
     private WorldManager worldManager;
     private ArenaManager arenaManager;
@@ -28,6 +29,7 @@ public class GradientPillars extends JavaPlugin {
 
         // Ініціалізація менеджерів
         configManager = new ConfigManager(this);
+        itemsConfigManager = new ItemsConfigManager(this);
         messageManager = new MessageManager(this);
         worldManager = new WorldManager(this);
         arenaManager = new ArenaManager(this);
@@ -66,6 +68,10 @@ public class GradientPillars extends JavaPlugin {
         return configManager;
     }
 
+    public ItemsConfigManager getItemsConfigManager() {
+        return itemsConfigManager;
+    }
+
     public MessageManager getMessageManager() {
         return messageManager;
     }
@@ -88,7 +94,9 @@ public class GradientPillars extends JavaPlugin {
 
     public void reload() {
         configManager.reload();
+        itemsConfigManager.reload();
         messageManager.reload();
         arenaManager.reload();
+        itemManager.reload();
     }
 }

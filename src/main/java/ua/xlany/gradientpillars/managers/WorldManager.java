@@ -54,7 +54,6 @@ public class WorldManager {
         // === КРОК 1: Телепортація та вивантаження (СИНХРОННО) ===
         plugin.getLogger().info("▶ Крок 1: Телепортація гравців...");
         World defaultWorld = Bukkit.getWorlds().get(0);
-        int playerCount = world.getPlayers().size();
 
         for (org.bukkit.entity.Player player : world.getPlayers()) {
             player.teleport(defaultWorld.getSpawnLocation());
