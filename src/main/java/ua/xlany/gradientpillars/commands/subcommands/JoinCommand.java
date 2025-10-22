@@ -32,11 +32,8 @@ public class JoinCommand implements SubCommand {
             return true;
         }
 
-        boolean success = plugin.getGameManager().joinGame(player);
-
-        if (!success) {
-            player.sendMessage(plugin.getMessageManager().getPrefixedComponent("game.join.game-full"));
-        }
+        String targetArena = args.length > 0 ? args[0] : null;
+        plugin.getGameManager().joinGame(player, targetArena);
 
         return true;
     }

@@ -84,7 +84,7 @@ public class ItemManager {
         loadCategory(config, "weapons", weapons, this::isWeapon, 1);
         loadCategory(config, "armor", armor, this::isArmor, 1);
         loadCategory(config, "food", food, this::isFood, 4);
-        loadCategory(config, "blocks", blocks, this::isBlockItem, 32);
+        loadCategory(config, "blocks", blocks, this::isBlockItem, 1);
         loadCategory(config, "tools", tools, this::isTool, 1);
         loadPotions(config);
     }
@@ -360,7 +360,7 @@ public class ItemManager {
             } else if (material.isEdible()) {
                 amount = Math.min(4, maxStack);
             } else if (material.isBlock()) {
-                amount = Math.min(defaultAmount, maxStack);
+                amount = 1;
             }
 
             stack.setAmount(amount);
