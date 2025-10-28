@@ -23,6 +23,7 @@ public class Game {
     private long gameStartTime;
     private int itemCooldown;
     private boolean wasActive; // Чи гра була активною (для визначення чи треба регенерувати світ)
+    private int countdownTimeLeft; // Час що залишився до початку гри
 
     public Game(String id, GameManager gameManager, String arenaName) {
         this.id = id;
@@ -175,6 +176,14 @@ public class Game {
 
     public void setWasActive(boolean wasActive) {
         this.wasActive = wasActive;
+    }
+
+    public int getCountdownTimeLeft() {
+        return countdownTimeLeft;
+    }
+
+    public void setCountdownTimeLeft(int countdownTimeLeft) {
+        this.countdownTimeLeft = countdownTimeLeft;
     }
 
     /**

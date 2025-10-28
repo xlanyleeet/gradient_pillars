@@ -35,6 +35,7 @@ game:
     countdown: "&eГра почнеться через &6{time} &eсекунд..."
     started: "&aГра почалася! Удачі!"
     not-enough-players: "&cНедостатньо гравців для початку гри!"
+    skip-wait: "&e{player} &aприскорив очікування! Гра почнеться через 10 секунд!"
   
   end:
     winner: "&6&l{player} &aпереміг!"
@@ -56,6 +57,7 @@ game:
   
   lobby:
     leave-item: "&cПокинути арену"
+    skip-wait-item: "&e&lПропустити очікування &7(ПКМ)"
   
 # Арени
 arena:

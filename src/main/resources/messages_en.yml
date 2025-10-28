@@ -34,7 +34,8 @@ game:
   start:
     countdown: "&eGame starting in &6{time} &eseconds..."
     started: "&aGame started! Good luck!"
-    not-enough-players: "&cNot enough players to start the game!"
+    not-enough-players: "&cNot enough players to start!"
+    skip-wait: "&e{player} &askipped the wait! Game starting in 10 seconds!"
   
   end:
     winner: "&6&l{player} &awon!"
