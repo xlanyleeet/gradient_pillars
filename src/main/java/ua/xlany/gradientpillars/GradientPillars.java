@@ -4,6 +4,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import ua.xlany.gradientpillars.commands.GPCommand;
 import ua.xlany.gradientpillars.integration.GradientPillarsPlaceholders;
+import ua.xlany.gradientpillars.listeners.GUIListener;
 import ua.xlany.gradientpillars.listeners.GameListener;
 import ua.xlany.gradientpillars.listeners.LobbyListener;
 import ua.xlany.gradientpillars.listeners.PlayerListener;
@@ -58,6 +59,7 @@ public class GradientPillars extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new GameListener(this), this);
         getServer().getPluginManager().registerEvents(new LobbyListener(this), this);
         getServer().getPluginManager().registerEvents(new WorldListener(this), this);
+        getServer().getPluginManager().registerEvents(new GUIListener(this), this);
 
         // PlaceholderAPI інтеграція
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {

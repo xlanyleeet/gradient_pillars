@@ -10,7 +10,7 @@ softdepend: [PlaceholderAPI]
 commands:
   gp:
     description: Main command for Gradient Pillars
-    usage: /gp <join|leave|arena|reload>
+    usage: /gp <play|join|leave|arena|reload>
     aliases: [gradientpillars, pillars]
 
 permissions:

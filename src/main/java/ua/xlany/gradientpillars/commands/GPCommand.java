@@ -27,6 +27,7 @@ public class GPCommand implements CommandExecutor, TabCompleter {
         this.subCommands = new HashMap<>();
 
         // Реєструємо всі підкоманди
+        registerSubCommand(new PlayCommand(plugin));
         registerSubCommand(new JoinCommand(plugin));
         registerSubCommand(new LeaveCommand(plugin));
         registerSubCommand(new ArenaCommand(plugin));
