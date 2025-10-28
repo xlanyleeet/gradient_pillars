@@ -319,7 +319,8 @@ public class ArenaManager {
         for (Arena arena : arenaCache.values()) {
             if (worldName.equalsIgnoreCase(arena.getWorldName())) {
                 arena.rebindWorld(world);
-                plugin.getLogger().info("Локації арени (кеш) '" + arena.getName() + "' переприв'язані до світу " + worldName);
+                plugin.getLogger()
+                        .info("Локації арени (кеш) '" + arena.getName() + "' переприв'язані до світу " + worldName);
             }
         }
     }
