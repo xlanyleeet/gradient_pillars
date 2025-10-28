@@ -1,6 +1,7 @@
 package ua.xlany.gradientpillars.models;
 
 import org.bukkit.Location;
+import org.bukkit.World;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -102,5 +103,29 @@ public class Arena {
 
     public void setMaxPlayers(int maxPlayers) {
         this.maxPlayers = maxPlayers;
+    }
+
+    public void rebindWorld(World world) {
+        if (world == null) {
+            return;
+        }
+
+        this.worldName = world.getName();
+
+        if (lobby != null) {
+            lobby.setWorld(world);
+        }
+
+        if (spectator != null) {
+            spectator.setWorld(world);
+        }
+
+        for (int i = 0; i < pillars.size(); i++) {
+            Location pillar = pillars.get(i);
+            if (pillar != null) {
+                pillar.setWorld(world);
+                pillars.set(i, pillar);
+            }
+        }
     }
 }

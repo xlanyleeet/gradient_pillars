@@ -1,15 +1,15 @@
 name: GradientPillars
-version: '${project.version}'
+version: "${project.version}"
 main: ua.xlany.gradientpillars.GradientPillars
-api-version: '1.21'
-author: xlany
+api-version: "1.21"
+author: xlanyleeet
 description: Fortune Pillars minigame plugin
-website: https://github.com/xlany
+website: https://github.com/xlanyleeet
 
 commands:
   gp:
     description: Main command for Gradient Pillars
-    usage: /gp <join|leave|setup|reload>
+    usage: /gp <join|leave|arena|reload>
     aliases: [gradientpillars, pillars]
 
 permissions:

@@ -38,14 +38,39 @@ public class GameManager {
     }
 
     public boolean joinGame(Player player) {
+        return joinGame(player, null);
+    }
+
+    public boolean joinGame(Player player, String targetArenaName) {
         if (playerGames.containsKey(player.getUniqueId())) {
             return false;
         }
 
-        // Спочатку знайти доступну арену
-        Arena arena = plugin.getArenaManager().getFirstAvailableArena();
-        if (arena == null || !arena.isSetup()) {
-            return false;
+        Arena arena;
+
+        if (targetArenaName != null && !targetArenaName.trim().isEmpty()) {
+            arena = plugin.getArenaManager().getArenas().stream()
+                    .filter(a -> a != null && a.getName() != null
+                            && a.getName().equalsIgnoreCase(targetArenaName))
+                    .findFirst()
+                    .orElse(null);
+
+            if (arena == null) {
+                player.sendMessage(plugin.getMessageManager().getPrefixedComponent("errors.arena-not-found"));
+                return false;
+            }
+
+            if (!arena.isSetup()) {
+                player.sendMessage(plugin.getMessageManager().getPrefixedComponent("errors.arena-not-setup"));
+                return false;
+            }
+        } else {
+            arena = plugin.getArenaManager().getFirstAvailableArena();
+
+            if (arena == null) {
+                player.sendMessage(plugin.getMessageManager().getPrefixedComponent("errors.arena-not-found"));
+                return false;
+            }
         }
 
         // Перевірити чи вже існує гра на цій арені
@@ -76,6 +101,7 @@ public class GameManager {
         }
 
         if (!game.addPlayer(player.getUniqueId())) {
+            player.sendMessage(plugin.getMessageManager().getPrefixedComponent("game.join.game-full"));
             return false;
         }
 
@@ -92,6 +118,7 @@ public class GameManager {
                     lobby.setWorld(world);
                 } else {
                     plugin.getLogger().severe("Світ арени не знайдено: " + arena.getWorldName());
+                    player.sendMessage(plugin.getMessageManager().getPrefixedComponent("errors.world-not-found"));
                     return false;
                 }
             }

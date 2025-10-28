@@ -1,0 +1,62 @@
+# Defines which items can be given to players. Set dynamic: true to auto-populate from available materials.
+categories:
+  weapons:
+    dynamic: true
+    items: []
+  armor:
+    dynamic: true
+    items: []
+  food:
+    dynamic: true
+    items: []
+  blocks:
+    dynamic: true
+    items: []
+  tools:
+    dynamic: true
+    items: []
+  potions:
+    dynamic: false
+    items:
+      - material: POTION
+        amount: 1
+        effects:
+          - type: SPEED
+            duration: 600
+            amplifier: 1
+      - material: POTION
+        amount: 1
+        effects:
+          - type: STRENGTH
+            duration: 400
+            amplifier: 1
+      - material: POTION
+        amount: 1
+        effects:
+          - type: INSTANT_HEALTH
+            duration: 1
+            amplifier: 1
+      - material: POTION
+        amount: 1
+        effects:
+          - type: JUMP_BOOST
+            duration: 600
+            amplifier: 2
+      - material: POTION
+        amount: 1
+        effects:
+          - type: REGENERATION
+            duration: 200
+            amplifier: 1
+      - material: POTION
+        amount: 1
+        effects:
+          - type: FIRE_RESISTANCE
+            duration: 600
+            amplifier: 0
+      - material: POTION
+        amount: 1
+        effects:
+          - type: INVISIBILITY
+            duration: 400
+            amplifier: 0
