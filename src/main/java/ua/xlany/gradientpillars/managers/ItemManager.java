@@ -356,7 +356,7 @@ public class ItemManager {
 
             if (material == Material.ARROW || material == Material.SPECTRAL_ARROW
                     || material == Material.TIPPED_ARROW) {
-                amount = Math.min(32, maxStack);
+                amount = Math.min(4, maxStack);
             } else if (material.isEdible()) {
                 amount = Math.min(4, maxStack);
             } else if (material.isBlock()) {
@@ -379,7 +379,6 @@ public class ItemManager {
                 || name.endsWith("_TRIDENT")
                 || material == Material.BOW
                 || material == Material.CROSSBOW
-                || material == Material.TRIDENT
                 || material == Material.MACE
                 || material == Material.ARROW
                 || material == Material.SPECTRAL_ARROW
@@ -412,14 +411,12 @@ public class ItemManager {
     private boolean isTool(Material material) {
         String name = material.name();
         return name.endsWith("_PICKAXE")
-                || name.endsWith("_AXE")
                 || name.endsWith("_SHOVEL")
                 || name.endsWith("_HOE")
                 || material == Material.SHEARS
                 || material == Material.FISHING_ROD
                 || material == Material.FLINT_AND_STEEL
                 || material == Material.BRUSH
-                || material == Material.MACE;
     }
 
     private ItemStack createPotion(PotionEffectType type, int duration, int amplifier) {
