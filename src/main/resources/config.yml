@@ -69,7 +69,7 @@ items:
     weapons: 10
     armor: 10
     food: 8
-    blocks: 25      # Блоки випадають частіше
+    blocks: 65      # Блоки випадають частіше
     potions: 5
     tools: 7
 
