@@ -397,7 +397,8 @@ public class ItemManager {
     }
 
     private boolean isFood(Material material) {
-        return material.isEdible();
+        // Тільки золоті яблука
+        return material == Material.GOLDEN_APPLE || material == Material.ENCHANTED_GOLDEN_APPLE;
     }
 
     private boolean isBlockItem(Material material) {
@@ -416,7 +417,7 @@ public class ItemManager {
                 || material == Material.SHEARS
                 || material == Material.FISHING_ROD
                 || material == Material.FLINT_AND_STEEL
-                || material == Material.BRUSH
+                || material == Material.BRUSH;
     }
 
     private ItemStack createPotion(PotionEffectType type, int duration, int amplifier) {

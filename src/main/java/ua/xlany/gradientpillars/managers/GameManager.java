@@ -135,6 +135,11 @@ public class GameManager {
         // Дати предмет для виходу з гри
         giveLeaveItem(player);
 
+        // Дати годинник пропуску очікування для гравців з правом
+        if (player.hasPermission("gradientpillars.skipwait")) {
+            giveSkipWaitItem(player);
+        }
+
         // Повідомлення
         player.sendMessage(plugin.getMessageManager().getPrefixedComponent("game.join.success"));
 
@@ -200,12 +205,13 @@ public class GameManager {
         game.setState(GameState.COUNTDOWN);
 
         int countdownTime = plugin.getConfigManager().getCountdownTime();
+        game.setCountdownTimeLeft(countdownTime);
 
         BukkitTask task = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
-            int timeLeft = countdownTime;
-
             @Override
             public void run() {
+                int timeLeft = game.getCountdownTimeLeft();
+
                 Arena currentArena = plugin.getArenaManager().getArena(game.getArenaName());
                 if (currentArena == null || game.getPlayerCount() < currentArena.getMinPlayers()) {
                     cancelCountdown(game);
@@ -229,14 +235,28 @@ public class GameManager {
                     }
                 }
 
+                // Видалити годинник пропуску очікування коли залишилось 10 секунд
+                if (timeLeft == 10) {
+                    removeSkipWaitItems(game);
+                }
+
                 // Оновити BossBar
                 updateCountdownBossBar(game, timeLeft);
 
-                timeLeft--;
+                game.setCountdownTimeLeft(timeLeft - 1);
             }
         }, 0L, 20L);
 
         game.setCountdownTask(task.getTaskId());
+    }
+
+    public void skipCountdown(Game game) {
+        if (game.getState() != GameState.COUNTDOWN) {
+            return;
+        }
+
+        // Встановити таймер на 10 секунд
+        game.setCountdownTimeLeft(10);
     }
 
     private void cancelCountdown(Game game) {
@@ -389,6 +409,22 @@ public class GameManager {
 
     private void endGame(Game game, Player winner) {
         game.setState(GameState.ENDING);
+
+        // Зберегти статистику
+        if (winner != null) {
+            // Переможець отримує перемогу
+            plugin.getStatsManager().addWin(winner.getUniqueId(), winner.getName());
+
+            // Всі інші отримують поразку
+            for (UUID playerId : game.getPlayers()) {
+                if (!playerId.equals(winner.getUniqueId())) {
+                    Player player = Bukkit.getPlayer(playerId);
+                    if (player != null) {
+                        plugin.getStatsManager().addLoss(playerId, player.getName());
+                    }
+                }
+            }
+        }
 
         // Скасувати всі таймери
         if (game.getCountdownTask() != 0) {
@@ -608,6 +644,28 @@ public class GameManager {
             leaveItem.setItemMeta(meta);
         }
         player.getInventory().setItem(8, leaveItem); // Останній слот
+    }
+
+    private void giveSkipWaitItem(Player player) {
+        ItemStack skipItem = new ItemStack(Material.CLOCK);
+        ItemMeta meta = skipItem.getItemMeta();
+        if (meta != null) {
+            meta.displayName(plugin.getMessageManager().getComponent("game.lobby.skip-wait-item"));
+            skipItem.setItemMeta(meta);
+        }
+        player.getInventory().setItem(4, skipItem); // Центральний слот
+    }
+
+    private void removeSkipWaitItems(Game game) {
+        for (UUID playerId : game.getPlayers()) {
+            Player player = Bukkit.getPlayer(playerId);
+            if (player != null) {
+                ItemStack itemInSlot = player.getInventory().getItem(4);
+                if (itemInSlot != null && itemInSlot.getType() == Material.CLOCK) {
+                    player.getInventory().setItem(4, null);
+                }
+            }
+        }
     }
 
     public void shutdown() {

@@ -5,11 +5,12 @@ api-version: "1.21"
 author: xlanyleeet
 description: Fortune Pillars minigame plugin
 website: https://github.com/xlanyleeet
+softdepend: [PlaceholderAPI]
 
 commands:
   gp:
     description: Main command for Gradient Pillars
-    usage: /gp <join|leave|arena|reload>
+    usage: /gp <play|join|leave|arena|reload>
     aliases: [gradientpillars, pillars]
 
 permissions:
@@ -19,3 +20,6 @@ permissions:
   gradientpillars.play:
     description: Allows joining games
     default: true
+  gradientpillars.skipwait:
+    description: Allows skipping countdown with clock item
+    default: false

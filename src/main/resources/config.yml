@@ -27,7 +27,7 @@ hub:
 # ========================================
 game:
   # Час до початку гри (секунди)
-  countdown-time: 10
+  countdown-time: 60
   
   # Максимальна тривалість гри (секунди)
   max-game-duration: 600
@@ -69,7 +69,7 @@ items:
     weapons: 10
     armor: 10
     food: 8
-    blocks: 25      # Блоки випадають частіше
+    blocks: 65      # Блоки випадають частіше
     potions: 5
     tools: 7
 
@@ -98,6 +98,35 @@ ui:
   
   # Показувати actionbar повідомлення
   use-actionbar: true
+
+# ========================================
+# Налаштування бази даних
+# ========================================
+database:
+  # Тип бази даних (mariadb, mysql)
+  type: mariadb
+  
+  # Хост бази даних
+  host: localhost
+  
+  # Порт бази даних
+  port: 3306
+  
+  # Назва бази даних
+  database: gradientpillars
+  
+  # Ім'я користувача
+  username: root
+  
+  # Пароль
+  password: password
+  
+  # Параметри підключення
+  properties:
+    useSSL: false
+    autoReconnect: true
+    characterEncoding: utf8
+    maxReconnects: 3
 
 # ========================================
 # Налаштування debug

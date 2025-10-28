@@ -35,6 +35,7 @@ game:
     countdown: "&eГра почнеться через &6{time} &eсекунд..."
     started: "&aГра почалася! Удачі!"
     not-enough-players: "&cНедостатньо гравців для початку гри!"
+    skip-wait: "&e{player} &aприскорив очікування! Гра почнеться через 10 секунд!"
   
   end:
     winner: "&6&l{player} &aпереміг!"
@@ -52,8 +53,35 @@ game:
   spectator:
     now-spectating: "&eТепер ви спостерігач!"
   
+  build-limit: "&cНе можна будувати вище Y: &6{y}"
+  
   lobby:
     leave-item: "&cПокинути арену"
+    skip-wait-item: "&e&lПропустити очікування &7(ПКМ)"
+
+# GUI
+gui:
+  arena-selection:
+    title: "&6&lВиберіть арену"
+    
+    status:
+      available: "&aДоступна"
+      starting: "&eПочинається"
+      in-progress: "&6Гра в процесі"
+      ending: "&dЗавершується"
+      not-setup: "&cАрена не налаштована"
+      unknown: "&7Невідомий стан"
+    
+    info:
+      players: "&7Гравці: &f{current}&7/&f{max}"
+      minimum: "&7Мінімум: &f{min}"
+      countdown: "&7Відлік: &f{time}с"
+      click-to-join: "&eНатисніть, щоб приєднатись!"
+      cannot-join: "&cНе можна приєднатись"
+      unavailable: "&cНедоступна для гри"
+      missing: "&7Відсутні:"
+      missing-pillars: "&7- Пілари"
+      missing-lobby: "&7- Лобі"
   
 # Арени
 arena:
@@ -68,6 +96,8 @@ arena:
     world-set: "&aСвіт арени встановлено: &6{world}"
     min-players-set: "&aМінімальна кількість гравців встановлена: &6{count}"
     max-players-set: "&aМаксимальна кількість гравців встановлена: &6{count}"
+    max-y-set: "&aМаксимальну висоту встановлено: &6{y}"
+    min-y-set: "&aМінімальну висоту (поріг смерті) встановлено: &6{y}"
     saved: "&aАрена збережена у файл arenas/{arena}.yml!"
     
   backup:

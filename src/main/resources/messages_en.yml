@@ -34,7 +34,8 @@ game:
   start:
     countdown: "&eGame starting in &6{time} &eseconds..."
     started: "&aGame started! Good luck!"
-    not-enough-players: "&cNot enough players to start the game!"
+    not-enough-players: "&cNot enough players to start!"
+    skip-wait: "&e{player} &askipped the wait! Game starting in 10 seconds!"
   
   end:
     winner: "&6&l{player} &awon!"
@@ -52,8 +53,35 @@ game:
   spectator:
     now-spectating: "&eYou are now spectating!"
   
+  build-limit: "&cCannot build above Y: &6{y}"
+  
   lobby:
     leave-item: "&cLeave Arena"
+    skip-wait-item: "&e&lSkip Wait &7(Right Click)"
+
+# GUI
+gui:
+  arena-selection:
+    title: "&6&lSelect Arena"
+    
+    status:
+      available: "&aAvailable"
+      starting: "&eStarting"
+      in-progress: "&6Game in Progress"
+      ending: "&dEnding"
+      not-setup: "&cArena Not Set Up"
+      unknown: "&7Unknown State"
+    
+    info:
+      players: "&7Players: &f{current}&7/&f{max}"
+      minimum: "&7Minimum: &f{min}"
+      countdown: "&7Countdown: &f{time}s"
+      click-to-join: "&eClick to join!"
+      cannot-join: "&cCannot join"
+      unavailable: "&cUnavailable for play"
+      missing: "&7Missing:"
+      missing-pillars: "&7- Pillars"
+      missing-lobby: "&7- Lobby"
   
 # Arenas
 arena:
@@ -68,6 +96,8 @@ arena:
     world-set: "&aArena world set: &6{world}"
     min-players-set: "&aMinimum players set: &6{count}"
     max-players-set: "&aMaximum players set: &6{count}"
+    max-y-set: "&aMaximum build height set: &6{y}"
+    min-y-set: "&aMinimum Y (death threshold) set: &6{y}"
     saved: "&aArena saved to arenas/{arena}.yml!"
     
   backup:

@@ -1,7 +1,10 @@
 package ua.xlany.gradientpillars;
 
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import ua.xlany.gradientpillars.commands.GPCommand;
+import ua.xlany.gradientpillars.integration.GradientPillarsPlaceholders;
+import ua.xlany.gradientpillars.listeners.GUIListener;
 import ua.xlany.gradientpillars.listeners.GameListener;
 import ua.xlany.gradientpillars.listeners.LobbyListener;
 import ua.xlany.gradientpillars.listeners.PlayerListener;
@@ -20,6 +23,8 @@ public class GradientPillars extends JavaPlugin {
     private ArenaManager arenaManager;
     private GameManager gameManager;
     private ItemManager itemManager;
+    private DatabaseManager databaseManager;
+    private StatsManager statsManager;
 
     @Override
     public void onEnable() {
@@ -31,6 +36,14 @@ public class GradientPillars extends JavaPlugin {
         configManager = new ConfigManager(this);
         itemsConfigManager = new ItemsConfigManager(this);
         messageManager = new MessageManager(this);
+
+        // Ініціалізація бази даних
+        databaseManager = new DatabaseManager(this);
+        if (!databaseManager.connect()) {
+            getLogger().severe("Failed to connect to database! Stats will not work.");
+        }
+        statsManager = new StatsManager(this, databaseManager);
+
         worldManager = new WorldManager(this);
         arenaManager = new ArenaManager(this);
         gameManager = new GameManager(this);
@@ -46,6 +59,15 @@ public class GradientPillars extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new GameListener(this), this);
         getServer().getPluginManager().registerEvents(new LobbyListener(this), this);
         getServer().getPluginManager().registerEvents(new WorldListener(this), this);
+        getServer().getPluginManager().registerEvents(new GUIListener(this), this);
+
+        // PlaceholderAPI інтеграція
+        if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
+            new GradientPillarsPlaceholders(this).register();
+            getLogger().info("PlaceholderAPI integration enabled!");
+        } else {
+            getLogger().warning("PlaceholderAPI not found! Placeholders will not work.");
+        }
 
         getLogger().info("Gradient Pillars успішно увімкнено!");
     }
@@ -55,6 +77,11 @@ public class GradientPillars extends JavaPlugin {
         // Завершення всіх активних ігор
         if (gameManager != null) {
             gameManager.shutdown();
+        }
+
+        // Закриття підключення до БД
+        if (databaseManager != null) {
+            databaseManager.disconnect();
         }
 
         getLogger().info("Gradient Pillars вимкнено!");
@@ -90,6 +117,14 @@ public class GradientPillars extends JavaPlugin {
 
     public WorldManager getWorldManager() {
         return worldManager;
+    }
+
+    public DatabaseManager getDatabaseManager() {
+        return databaseManager;
+    }
+
+    public StatsManager getStatsManager() {
+        return statsManager;
     }
 
     public void reload() {
