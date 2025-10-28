@@ -118,6 +118,8 @@ public class ArenaManager {
         // Завантажити налаштування гравців
         arena.setMinPlayers(config.getInt("arena.min-players", 2));
         arena.setMaxPlayers(config.getInt("arena.max-players", 16));
+        arena.setMaxY(config.getInt("arena.max-y", 256));
+        arena.setMinY(config.getInt("arena.min-y", 0));
 
         return arena;
     }
@@ -166,6 +168,8 @@ public class ArenaManager {
         // Зберегти налаштування гравців
         config.set("arena.min-players", arena.getMinPlayers());
         config.set("arena.max-players", arena.getMaxPlayers());
+        config.set("arena.max-y", arena.getMaxY());
+        config.set("arena.min-y", arena.getMinY());
 
         try {
             config.save(configFile);

@@ -8,8 +8,10 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerPickupArrowEvent;
 import ua.xlany.gradientpillars.GradientPillars;
+import ua.xlany.gradientpillars.models.Arena;
 import ua.xlany.gradientpillars.models.Game;
 import ua.xlany.gradientpillars.models.GameState;
 
@@ -38,6 +40,36 @@ public class GameListener implements Listener {
 
         if (game != null && game.getState() != GameState.ACTIVE) {
             event.setCancelled(true);
+            return;
+        }
+
+        // Перевірка максимальної висоти будівництва
+        if (game != null && game.getState() == GameState.ACTIVE) {
+            Arena arena = plugin.getArenaManager().getArena(game.getArenaName());
+            if (arena != null) {
+                int blockY = event.getBlock().getY();
+                if (blockY > arena.getMaxY()) {
+                    event.setCancelled(true);
+                    player.sendMessage(plugin.getMessageManager().getPrefixedComponent(
+                            "game.build-limit", "y", String.valueOf(arena.getMaxY())));
+                }
+            }
+        }
+    }
+
+    @EventHandler
+    public void onPlayerMove(PlayerMoveEvent event) {
+        Player player = event.getPlayer();
+        Game game = plugin.getGameManager().getPlayerGame(player.getUniqueId());
+
+        if (game != null && game.getState() == GameState.ACTIVE) {
+            Arena arena = plugin.getArenaManager().getArena(game.getArenaName());
+            if (arena != null) {
+                double playerY = player.getLocation().getY();
+                if (playerY < arena.getMinY()) {
+                    player.setHealth(0.0);
+                }
+            }
         }
     }
 

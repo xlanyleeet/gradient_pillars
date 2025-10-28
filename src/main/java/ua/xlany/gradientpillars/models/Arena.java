@@ -15,12 +15,16 @@ public class Arena {
     private List<Location> pillars;
     private int minPlayers;
     private int maxPlayers;
+    private int maxY;
+    private int minY;
 
     public Arena(String name) {
         this.name = name;
         this.pillars = new ArrayList<>();
         this.minPlayers = 2; // За замовчуванням
         this.maxPlayers = 16; // За замовчуванням
+        this.maxY = 256; // За замовчуванням
+        this.minY = 0; // За замовчуванням
     }
 
     public String getName() {
@@ -103,6 +107,22 @@ public class Arena {
 
     public void setMaxPlayers(int maxPlayers) {
         this.maxPlayers = maxPlayers;
+    }
+
+    public int getMaxY() {
+        return maxY;
+    }
+
+    public void setMaxY(int maxY) {
+        this.maxY = maxY;
+    }
+
+    public int getMinY() {
+        return minY;
+    }
+
+    public void setMinY(int minY) {
+        this.minY = minY;
     }
 
     public void rebindWorld(World world) {

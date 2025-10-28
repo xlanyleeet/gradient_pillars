@@ -416,7 +416,7 @@ public class ItemManager {
                 || material == Material.SHEARS
                 || material == Material.FISHING_ROD
                 || material == Material.FLINT_AND_STEEL
-                || material == Material.BRUSH
+                || material == Material.BRUSH;
     }
 
     private ItemStack createPotion(PotionEffectType type, int duration, int amplifier) {

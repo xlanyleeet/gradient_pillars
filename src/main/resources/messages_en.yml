@@ -52,6 +52,8 @@ game:
   spectator:
     now-spectating: "&eYou are now spectating!"
   
+  build-limit: "&cCannot build above Y: &6{y}"
+  
   lobby:
     leave-item: "&cLeave Arena"
   
@@ -68,6 +70,8 @@ arena:
     world-set: "&aArena world set: &6{world}"
     min-players-set: "&aMinimum players set: &6{count}"
     max-players-set: "&aMaximum players set: &6{count}"
+    max-y-set: "&aMaximum build height set: &6{y}"
+    min-y-set: "&aMinimum Y (death threshold) set: &6{y}"
     saved: "&aArena saved to arenas/{arena}.yml!"
     
   backup:
