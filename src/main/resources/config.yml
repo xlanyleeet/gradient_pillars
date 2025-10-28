@@ -100,6 +100,35 @@ ui:
   use-actionbar: true
 
 # ========================================
+# Налаштування бази даних
+# ========================================
+database:
+  # Тип бази даних (mariadb, mysql)
+  type: mariadb
+  
+  # Хост бази даних
+  host: localhost
+  
+  # Порт бази даних
+  port: 3306
+  
+  # Назва бази даних
+  database: gradientpillars
+  
+  # Ім'я користувача
+  username: root
+  
+  # Пароль
+  password: password
+  
+  # Параметри підключення
+  properties:
+    useSSL: false
+    autoReconnect: true
+    characterEncoding: utf8
+    maxReconnects: 3
+
+# ========================================
 # Налаштування debug
 # ========================================
 debug:

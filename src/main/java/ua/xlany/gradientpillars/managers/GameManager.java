@@ -410,6 +410,22 @@ public class GameManager {
     private void endGame(Game game, Player winner) {
         game.setState(GameState.ENDING);
 
+        // Зберегти статистику
+        if (winner != null) {
+            // Переможець отримує перемогу
+            plugin.getStatsManager().addWin(winner.getUniqueId(), winner.getName());
+
+            // Всі інші отримують поразку
+            for (UUID playerId : game.getPlayers()) {
+                if (!playerId.equals(winner.getUniqueId())) {
+                    Player player = Bukkit.getPlayer(playerId);
+                    if (player != null) {
+                        plugin.getStatsManager().addLoss(playerId, player.getName());
+                    }
+                }
+            }
+        }
+
         // Скасувати всі таймери
         if (game.getCountdownTask() != 0) {
             Bukkit.getScheduler().cancelTask(game.getCountdownTask());
