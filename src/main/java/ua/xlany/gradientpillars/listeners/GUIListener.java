@@ -7,6 +7,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import ua.xlany.gradientpillars.GradientPillars;
 import ua.xlany.gradientpillars.gui.ArenaSelectionGUI;
+import ua.xlany.gradientpillars.gui.ArenaSelectionHolder;
 
 public class GUIListener implements Listener {
 
@@ -22,9 +23,8 @@ public class GUIListener implements Listener {
             return;
         }
 
-        // Перевіряємо чи це GUI вибору арени
-        String title = event.getView().title().toString();
-        if (!title.contains("Виберіть арену")) {
+        // Перевіряємо чи це GUI вибору арени через InventoryHolder
+        if (!(event.getInventory().getHolder() instanceof ArenaSelectionHolder)) {
             return;
         }
 
@@ -42,7 +42,7 @@ public class GUIListener implements Listener {
 
         if (arenaName != null) {
             player.closeInventory();
-            
+
             // Приєднуємось до арени
             plugin.getGameManager().joinGame(player, arenaName);
         }
