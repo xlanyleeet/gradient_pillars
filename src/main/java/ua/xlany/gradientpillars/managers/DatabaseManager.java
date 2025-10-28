@@ -66,7 +66,7 @@ public class DatabaseManager {
                 createTables();
                 tablesCreated = true;
             }
-            
+
             return true;
 
         } catch (ClassNotFoundException e) {
