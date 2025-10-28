@@ -57,17 +57,18 @@ public class StatsManager {
         String query = "SELECT * FROM player_stats WHERE uuid = ?";
 
         try (Connection conn = databaseManager.getConnection();
-                PreparedStatement stmt = conn.prepareStatement(query);
-                ResultSet rs = stmt.executeQuery()) {
+                PreparedStatement stmt = conn.prepareStatement(query)) {
 
             stmt.setString(1, uuid.toString());
 
-            if (rs.next()) {
-                return new PlayerStats(
-                        UUID.fromString(rs.getString("uuid")),
-                        rs.getString("player_name"),
-                        rs.getInt("wins"),
-                        rs.getInt("losses"));
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return new PlayerStats(
+                            UUID.fromString(rs.getString("uuid")),
+                            rs.getString("player_name"),
+                            rs.getInt("wins"),
+                            rs.getInt("losses"));
+                }
             }
 
         } catch (SQLException e) {
@@ -81,17 +82,18 @@ public class StatsManager {
         String query = "SELECT * FROM player_stats WHERE player_name = ?";
 
         try (Connection conn = databaseManager.getConnection();
-                PreparedStatement stmt = conn.prepareStatement(query);
-                ResultSet rs = stmt.executeQuery()) {
+                PreparedStatement stmt = conn.prepareStatement(query)) {
 
             stmt.setString(1, playerName);
 
-            if (rs.next()) {
-                return new PlayerStats(
-                        UUID.fromString(rs.getString("uuid")),
-                        rs.getString("player_name"),
-                        rs.getInt("wins"),
-                        rs.getInt("losses"));
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return new PlayerStats(
+                            UUID.fromString(rs.getString("uuid")),
+                            rs.getString("player_name"),
+                            rs.getInt("wins"),
+                            rs.getInt("losses"));
+                }
             }
 
         } catch (SQLException e) {
