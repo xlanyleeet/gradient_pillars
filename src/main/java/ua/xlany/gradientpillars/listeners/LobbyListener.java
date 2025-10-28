@@ -56,7 +56,7 @@ public class LobbyListener implements Listener {
 
                 // Скоротити таймер до 10 секунд
                 plugin.getGameManager().skipCountdown(game);
-                item.setAmount(0); // Видалити предмет після використання
+                player.getInventory().setItem(4, null); // Видалити предмет після використання
 
                 // Повідомити всіх гравців
                 for (java.util.UUID playerId : game.getPlayers()) {
