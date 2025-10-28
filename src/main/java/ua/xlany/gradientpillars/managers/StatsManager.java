@@ -57,10 +57,10 @@ public class StatsManager {
         String query = "SELECT * FROM player_stats WHERE uuid = ?";
 
         try (Connection conn = databaseManager.getConnection();
-                PreparedStatement stmt = conn.prepareStatement(query)) {
+                PreparedStatement stmt = conn.prepareStatement(query);
+                ResultSet rs = stmt.executeQuery()) {
 
             stmt.setString(1, uuid.toString());
-            ResultSet rs = stmt.executeQuery();
 
             if (rs.next()) {
                 return new PlayerStats(
@@ -81,10 +81,10 @@ public class StatsManager {
         String query = "SELECT * FROM player_stats WHERE player_name = ?";
 
         try (Connection conn = databaseManager.getConnection();
-                PreparedStatement stmt = conn.prepareStatement(query)) {
+                PreparedStatement stmt = conn.prepareStatement(query);
+                ResultSet rs = stmt.executeQuery()) {
 
             stmt.setString(1, playerName);
-            ResultSet rs = stmt.executeQuery();
 
             if (rs.next()) {
                 return new PlayerStats(
