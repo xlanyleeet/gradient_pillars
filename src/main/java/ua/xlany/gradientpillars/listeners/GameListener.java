@@ -59,16 +59,18 @@ public class GameListener implements Listener {
 
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
+        // Оптимізація: ігноруємо подію якщо Y координата не змінилась
+        if (event.getFrom().getY() == event.getTo().getY()) {
+            return;
+        }
+
         Player player = event.getPlayer();
         Game game = plugin.getGameManager().getPlayerGame(player.getUniqueId());
 
         if (game != null && game.getState() == GameState.ACTIVE) {
             Arena arena = plugin.getArenaManager().getArena(game.getArenaName());
-            if (arena != null) {
-                double playerY = player.getLocation().getY();
-                if (playerY < arena.getMinY()) {
-                    player.setHealth(0.0);
-                }
+            if (arena != null && event.getTo().getY() < arena.getMinY()) {
+                player.setHealth(0.0);
             }
         }
     }
