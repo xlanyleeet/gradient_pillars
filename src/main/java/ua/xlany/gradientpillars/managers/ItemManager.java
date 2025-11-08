@@ -83,7 +83,7 @@ public class ItemManager {
 
         loadCategory(config, "weapons", weapons, this::isWeapon, 1);
         loadCategory(config, "armor", armor, this::isArmor, 1);
-        loadCategory(config, "food", food, this::isFood, 4);
+        loadCategory(config, "food", food, this::isFood, 1);
         loadCategory(config, "blocks", blocks, this::isBlockItem, 1);
         loadCategory(config, "tools", tools, this::isTool, 1);
         loadPotions(config);
@@ -382,7 +382,8 @@ public class ItemManager {
                 || material == Material.MACE
                 || material == Material.ARROW
                 || material == Material.SPECTRAL_ARROW
-                || material == Material.TIPPED_ARROW;
+                || material == Material.TIPPED_ARROW
+                || material == Material.WIND_CHARGE;
     }
 
     private boolean isArmor(Material material) {
@@ -397,7 +398,6 @@ public class ItemManager {
     }
 
     private boolean isFood(Material material) {
-        // Тільки золоті яблука
         return material == Material.GOLDEN_APPLE || material == Material.ENCHANTED_GOLDEN_APPLE;
     }
 
