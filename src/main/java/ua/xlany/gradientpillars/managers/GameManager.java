@@ -279,6 +279,9 @@ public class GameManager {
             return;
         }
 
+        // Видалити блоки лобі очікування в радіусі 10 блоків від спавну лобі
+        removeLobbyWaitingBlocks(arena);
+
         // Телепортувати гравців на стовпи
         List<Location> pillars = arena.getPillars();
         List<UUID> players = new ArrayList<>(game.getPlayers());
@@ -321,6 +324,37 @@ public class GameManager {
 
         // Запустити таймер предметів
         startItemTimer(game);
+    }
+
+    private void removeLobbyWaitingBlocks(Arena arena) {
+        Location lobby = arena.getLobby();
+        if (lobby == null || lobby.getWorld() == null) {
+            return;
+        }
+
+        World world = lobby.getWorld();
+        int centerX = lobby.getBlockX();
+        int centerY = lobby.getBlockY();
+        int centerZ = lobby.getBlockZ();
+        int radius = 10;
+
+        // Видалити всі блоки в радіусі 10 блоків від спавну лобі
+        for (int x = centerX - radius; x <= centerX + radius; x++) {
+            for (int y = centerY - radius; y <= centerY + radius; y++) {
+                for (int z = centerZ - radius; z <= centerZ + radius; z++) {
+                    // Перевірка відстані (сферичний радіус)
+                    double distance = Math.sqrt(
+                        Math.pow(x - centerX, 2) +
+                        Math.pow(y - centerY, 2) +
+                        Math.pow(z - centerZ, 2)
+                    );
+
+                    if (distance <= radius) {
+                        world.getBlockAt(x, y, z).setType(Material.AIR);
+                    }
+                }
+            }
+        }
     }
 
     private void startGameTimer(Game game) {
