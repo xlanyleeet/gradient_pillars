@@ -344,10 +344,9 @@ public class GameManager {
                 for (int z = centerZ - radius; z <= centerZ + radius; z++) {
                     // Перевірка відстані (сферичний радіус)
                     double distance = Math.sqrt(
-                        Math.pow(x - centerX, 2) +
-                        Math.pow(y - centerY, 2) +
-                        Math.pow(z - centerZ, 2)
-                    );
+                            Math.pow(x - centerX, 2) +
+                                    Math.pow(y - centerY, 2) +
+                                    Math.pow(z - centerZ, 2));
 
                     if (distance <= radius) {
                         world.getBlockAt(x, y, z).setType(Material.AIR);
