@@ -2,8 +2,10 @@ package ua.xlany.gradientpillars;
 
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
+import ua.xlany.gradientpillars.chat.ChatManager;
 import ua.xlany.gradientpillars.commands.GPCommand;
 import ua.xlany.gradientpillars.integration.GradientPillarsPlaceholders;
+import ua.xlany.gradientpillars.listeners.ChatListener;
 import ua.xlany.gradientpillars.listeners.GUIListener;
 import ua.xlany.gradientpillars.listeners.GameListener;
 import ua.xlany.gradientpillars.listeners.LobbyListener;
@@ -25,6 +27,7 @@ public class GradientPillars extends JavaPlugin {
     private ItemManager itemManager;
     private DatabaseManager databaseManager;
     private StatsManager statsManager;
+    private ChatManager chatManager;
 
     @Override
     public void onEnable() {
@@ -48,6 +51,7 @@ public class GradientPillars extends JavaPlugin {
         arenaManager = new ArenaManager(this);
         gameManager = new GameManager(this);
         itemManager = new ItemManager(this);
+        chatManager = new ChatManager(this);
 
         // Реєстрація команд
         GPCommand gpCommand = new GPCommand(this);
@@ -60,6 +64,7 @@ public class GradientPillars extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new LobbyListener(this), this);
         getServer().getPluginManager().registerEvents(new WorldListener(this), this);
         getServer().getPluginManager().registerEvents(new GUIListener(this), this);
+        getServer().getPluginManager().registerEvents(new ChatListener(this), this);
 
         // PlaceholderAPI інтеграція
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
@@ -125,6 +130,10 @@ public class GradientPillars extends JavaPlugin {
 
     public StatsManager getStatsManager() {
         return statsManager;
+    }
+
+    public ChatManager getChatManager() {
+        return chatManager;
     }
 
     public void reload() {
