@@ -398,7 +398,7 @@ public class ItemManager {
     }
 
     private boolean isFood(Material material) {
-        return material == Material.GOLDEN_APPLE || material == Material.ENCHANTED_GOLDEN_APPLE;
+        return material == Material.GOLDEN_APPLE;
     }
 
     private boolean isBlockItem(Material material) {
