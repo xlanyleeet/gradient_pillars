@@ -1,6 +1,7 @@
 package ua.xlany.gradientpillars.models;
 
 import net.kyori.adventure.bossbar.BossBar;
+import org.bukkit.Location;
 import ua.xlany.gradientpillars.managers.GameManager;
 
 import java.util.*;
@@ -24,6 +25,7 @@ public class Game {
     private int itemCooldown;
     private boolean wasActive; // Чи гра була активною (для визначення чи треба регенерувати світ)
     private int countdownTimeLeft; // Час що залишився до початку гри
+    private final Map<UUID, List<Location>> playerCageBlocks; // Блоки клітки для кожного гравця
 
     public Game(String id, GameManager gameManager, String arenaName) {
         this.id = id;
@@ -33,6 +35,7 @@ public class Game {
         this.alivePlayers = new HashSet<>();
         this.spectators = new HashSet<>();
         this.pillarAssignments = new HashMap<>();
+        this.playerCageBlocks = new HashMap<>();
         this.state = GameState.WAITING;
         this.itemCooldown = 0;
         this.wasActive = false;
@@ -186,6 +189,32 @@ public class Game {
         this.countdownTimeLeft = countdownTimeLeft;
     }
 
+    public Map<UUID, List<Location>> getPlayerCageBlocks() {
+        return playerCageBlocks;
+    }
+
+    public void addCageBlock(UUID playerId, Location location) {
+        playerCageBlocks.computeIfAbsent(playerId, k -> new ArrayList<>()).add(location);
+    }
+
+    public void removeCageBlocks(UUID playerId) {
+        List<Location> blocks = playerCageBlocks.remove(playerId);
+        if (blocks != null && !blocks.isEmpty()) {
+            for (Location loc : blocks) {
+                if (loc.getWorld() != null) {
+                    loc.getWorld().getBlockAt(loc).setType(org.bukkit.Material.AIR);
+                }
+            }
+        }
+    }
+
+    public void clearAllCageBlocks() {
+        for (UUID playerId : new ArrayList<>(playerCageBlocks.keySet())) {
+            removeCageBlocks(playerId);
+        }
+        playerCageBlocks.clear();
+    }
+
     /**
      * Скинути гру до початкового стану (для перевикористання)
      */
@@ -195,6 +224,7 @@ public class Game {
         alivePlayers.clear();
         spectators.clear();
         pillarAssignments.clear();
+        clearAllCageBlocks();
 
         // Скинути стан
         state = GameState.WAITING;
