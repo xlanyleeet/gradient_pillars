@@ -529,6 +529,11 @@ public class GameManager {
                 player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(20.0);
                 player.setHealth(20.0);
                 player.getAttribute(Attribute.GENERIC_JUMP_STRENGTH).setBaseValue(0.42); // Стандартне значення
+                
+                // Видалити всі ефекти зілля (Jump Boost, Blindness тощо)
+                player.getActivePotionEffects().forEach(effect -> 
+                    player.removePotionEffect(effect.getType())
+                );
             }
         }
 

@@ -40,18 +40,12 @@ public class GUIListener implements Listener {
             Game game = holder.getGame();
             int slot = event.getSlot();
 
-            // Визначити який режим було обрано на основі слоту
-            GameMode selectedMode = null;
-            int modeIndex = 0;
-            for (GameMode mode : GameMode.values()) {
-                if (slot == 11 + (modeIndex * 2)) {
-                    selectedMode = mode;
-                    break;
-                }
-                modeIndex++;
-            }
-
-            if (selectedMode != null) {
+            // Визначити який режим було обрано на основі слоту (слоти 10-16 для 7 режимів)
+            if (slot >= 10 && slot <= 16) {
+                int modeIndex = slot - 10;
+                GameMode[] modes = GameMode.values();
+                if (modeIndex < modes.length) {
+                    GameMode selectedMode = modes[modeIndex];
                 // Зареєструвати голос
                 game.voteForMode(player.getUniqueId(), selectedMode);
 
@@ -64,9 +58,7 @@ public class GUIListener implements Listener {
                 // Оновити GUI для відображення нового голосу
                 GameModeSelectionGUI gui = new GameModeSelectionGUI(plugin, game);
                 gui.open(player);
-            }
-            return;
-        }
+                }
 
         // Перевіряємо чи це GUI вибору арени через InventoryHolder
         if (!(event.getInventory().getHolder() instanceof ArenaSelectionHolder)) {

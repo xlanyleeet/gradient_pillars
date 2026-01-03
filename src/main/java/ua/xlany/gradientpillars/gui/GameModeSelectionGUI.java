@@ -43,12 +43,12 @@ public class GameModeSelectionGUI {
         // Отримати підрахунок голосів
         Map<GameMode, Integer> voteCounts = game.getVoteCounts();
 
-        // Додати предмети для кожного режиму
-        int slot = 11; // Початковий слот (центр GUI)
+        // Розмістити режими в один ряд по центру (слоти 10-16)
+        int slot = 10;
         for (GameMode mode : GameMode.values()) {
             ItemStack item = createModeItem(mode, voteCounts.getOrDefault(mode, 0), player);
             inventory.setItem(slot, item);
-            slot += 2; // Пропускаємо один слот між предметами
+            slot++;
         }
 
         player.openInventory(inventory);
