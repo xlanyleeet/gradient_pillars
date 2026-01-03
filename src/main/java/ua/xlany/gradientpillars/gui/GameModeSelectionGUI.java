@@ -34,12 +34,11 @@ public class GameModeSelectionGUI {
      */
     public void open(Player player) {
         Component title = plugin.getMessageManager().getComponent("gui.mode-selection.title");
-        
+
         Inventory inventory = Bukkit.createInventory(
                 new GameModeSelectionHolder(game),
                 27,
-                title.color(NamedTextColor.DARK_GREEN).decorate(TextDecoration.BOLD)
-        );
+                title.color(NamedTextColor.DARK_GREEN).decorate(TextDecoration.BOLD));
 
         // Отримати підрахунок голосів
         Map<GameMode, Integer> voteCounts = game.getVoteCounts();
@@ -70,13 +69,13 @@ public class GameModeSelectionGUI {
             // Лор (опис)
             List<Component> lore = new ArrayList<>();
             lore.add(Component.empty());
-            
+
             // Опис режиму
             String modeDesc = plugin.getMessageManager().getMessage(mode.getTranslationKey() + ".description");
             lore.add(Component.text(modeDesc, NamedTextColor.GRAY));
-            
+
             lore.add(Component.empty());
-            
+
             // Голоси
             String votesText = plugin.getMessageManager().getMessage("gui.mode-selection.votes");
             lore.add(Component.text(votesText, NamedTextColor.YELLOW)

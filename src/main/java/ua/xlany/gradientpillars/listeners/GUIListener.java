@@ -54,13 +54,12 @@ public class GUIListener implements Listener {
             if (selectedMode != null) {
                 // Зареєструвати голос
                 game.voteForMode(player.getUniqueId(), selectedMode);
-                
+
                 // Повідомити гравця
                 String modeName = plugin.getMessageManager().getMessage(selectedMode.getTranslationKey() + ".name");
                 player.sendMessage(plugin.getMessageManager().getPrefixedComponent(
-                        "game.mode.voted", 
-                        "mode", modeName
-                ));
+                        "game.mode.voted",
+                        "mode", modeName));
 
                 // Оновити GUI для відображення нового голосу
                 GameModeSelectionGUI gui = new GameModeSelectionGUI(plugin, game);
