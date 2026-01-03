@@ -39,6 +39,7 @@ game:
   
   end:
     winner: "&6&l{player} &awon!"
+    winner-title: "won!"
     no-winner: "&cDraw! No winner!"
     game-ended: "&eGame ended!"
   
@@ -58,11 +59,21 @@ game:
   lobby:
     leave-item: "&cLeave Arena"
     skip-wait-item: "&e&lSkip Wait &7(Right Click)"
-
+    mode-selection-item: "&6&lSelect Game Mode &7(Right Click)"
+  
+  mode:
+    voted: "&aYou voted for mode: &6{mode}"
+    active: "&e&lGame Mode: &6&l{mode}\n&7{description}"
 # GUI
 gui:
   arena-selection:
     title: "&6&lSelect Arena"
+  
+  mode-selection:
+    title: "Select Game Mode"
+    votes: "Votes: "
+    voted: "✓ You voted for this mode"
+    click-to-select: "Click to select"
     
     status:
       available: "&aAvailable"
@@ -83,6 +94,30 @@ gui:
       missing-pillars: "&7- Pillars"
       missing-lobby: "&7- Lobby"
   
+# Game Modes
+mode:
+  normal:
+    name: "Normal"
+    description: "Standard game mode"
+  rising-lava:
+    name: "Rising Lava"
+    description: "Lava gradually rises upwards"
+  two-rows-hearts:
+    name: "2 Rows of Hearts"
+    description: "Play with 20 health points"
+  one-heart:
+    name: "1 Heart"
+    description: "Play with only 2 health points"
+  jump-boost:
+    name: "Jump Boost 1"
+    description: "Permanent Jump Boost I effect"
+  no-jump:
+    name: "No Jump"
+    description: "Players cannot jump at all"
+  darkness:
+    name: "Darkness"
+    description: "Limited visibility - only a few blocks around"
+
 # Arenas
 arena:
   created: "&aArena &6{arena} &asuccessfully created! Use /gp setup to configure."

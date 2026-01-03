@@ -6,7 +6,7 @@
 
     <groupId>ua.xlany</groupId>
     <artifactId>GradientPillars</artifactId>
-    <version>1.6.0</version>
+    <version>1.9.0</version>
     <packaging>jar</packaging>
 
     <name>GradientPillars</name>

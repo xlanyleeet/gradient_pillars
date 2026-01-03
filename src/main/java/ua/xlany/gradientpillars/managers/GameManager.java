@@ -2,7 +2,10 @@ package ua.xlany.gradientpillars.managers;
 
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.*;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -158,6 +161,9 @@ public class GameManager {
 
         // Дати предмет для виходу з гри
         giveLeaveItem(player);
+        
+        // Дати предмет для вибору режиму гри
+        giveModeSelectionItem(player);
 
         // Дати годинник пропуску очікування для гравців з правом
         if (player.hasPermission("gradientpillars.skipwait")) {
@@ -306,8 +312,9 @@ public class GameManager {
             return;
         }
 
-        // Видалити блоки лобі очікування в радіусі 10 блоків від спавну лобі
-        removeLobbyWaitingBlocks(arena);
+        // Визначити переможний режим гри на основі голосування
+        ua.xlany.gradientpillars.models.GameMode selectedMode = game.calculateWinningMode();
+        game.setSelectedMode(selectedMode);
 
         // Гравці вже на стовпах в клітках - тільки змінити режим гри та видалити клітки
         for (UUID playerId : game.getPlayers()) {
@@ -315,17 +322,32 @@ public class GameManager {
             if (player != null) {
                 player.setGameMode(GameMode.SURVIVAL);
                 player.getInventory().clear(); // Очистити інвентар (прибрати предмети очікування)
+                
+                // Встановити HP відповідно до режиму
+                player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(selectedMode.getHealth());
+                player.setHealth(selectedMode.getHealth());
             }
         }
 
         // Видалити всі клітки через 1 тік
         Bukkit.getScheduler().runTaskLater(plugin, () -> game.clearAllCageBlocks(), 1L);
 
-        // Повідомлення
+        // Повідомлення про початок та режим гри
         for (UUID playerId : game.getPlayers()) {
             Player player = Bukkit.getPlayer(playerId);
             if (player != null) {
                 player.sendMessage(plugin.getMessageManager().getPrefixedComponent("game.start.started"));
+                
+                // Повідомити про обраний режим
+                if (selectedMode != ua.xlany.gradientpillars.models.GameMode.NORMAL) {
+                    String modeName = plugin.getMessageManager().getMessage(selectedMode.getTranslationKey() + ".name");
+                    String modeDesc = plugin.getMessageManager().getMessage(selectedMode.getTranslationKey() + ".description");
+                    player.sendMessage(plugin.getMessageManager().getPrefixedComponent(
+                            "game.mode.active", 
+                            "mode", modeName,
+                            "description", modeDesc
+                    ));
+                }
             }
         }
 
@@ -334,35 +356,25 @@ public class GameManager {
 
         // Запустити таймер предметів
         startItemTimer(game);
-    }
-
-    private void removeLobbyWaitingBlocks(Arena arena) {
-        Location lobby = arena.getLobby();
-        if (lobby == null || lobby.getWorld() == null) {
-            return;
+        
+        // Запустити режим лави якщо обрано
+        if (selectedMode == ua.xlany.gradientpillars.models.GameMode.RISING_LAVA) {
+            startRisingLava(game, arena);
         }
-
-        World world = lobby.getWorld();
-        int centerX = lobby.getBlockX();
-        int centerY = lobby.getBlockY();
-        int centerZ = lobby.getBlockZ();
-        int radius = 10;
-
-        // Видалити всі блоки в радіусі 10 блоків від спавну лобі
-        for (int x = centerX - radius; x <= centerX + radius; x++) {
-            for (int y = centerY - radius; y <= centerY + radius; y++) {
-                for (int z = centerZ - radius; z <= centerZ + radius; z++) {
-                    // Перевірка відстані (сферичний радіус)
-                    double distance = Math.sqrt(
-                            Math.pow(x - centerX, 2) +
-                                    Math.pow(y - centerY, 2) +
-                                    Math.pow(z - centerZ, 2));
-
-                    if (distance <= radius) {
-                        world.getBlockAt(x, y, z).setType(Material.AIR);
-                    }
-                }
-            }
+        
+        // Застосувати Jump Boost якщо обрано
+        if (selectedMode == ua.xlany.gradientpillars.models.GameMode.JUMP_BOOST) {
+            applyJumpBoost(game);
+        }
+        
+        // Застосувати No Jump якщо обрано
+        if (selectedMode == ua.xlany.gradientpillars.models.GameMode.NO_JUMP) {
+            applyNoJump(game);
+        }
+        
+        // Застосувати Darkness якщо обрано
+        if (selectedMode == ua.xlany.gradientpillars.models.GameMode.DARKNESS) {
+            applyDarkness(game);
         }
     }
 
@@ -479,6 +491,9 @@ public class GameManager {
         if (game.getItemTask() != 0) {
             Bukkit.getScheduler().cancelTask(game.getItemTask());
         }
+        if (game.getLavaTask() != 0) {
+            Bukkit.getScheduler().cancelTask(game.getLavaTask());
+        }
 
         // Повідомлення про переможця
         for (UUID playerId : game.getPlayers()) {
@@ -487,6 +502,18 @@ public class GameManager {
                 if (winner != null) {
                     player.sendMessage(plugin.getMessageManager().getPrefixedComponent(
                             "game.end.winner", "player", winner.getName()));
+                    
+                    // Показати title/subtitle
+                    Component winnerTitle = plugin.getMessageManager().getComponent("game.end.winner-title");
+                    player.showTitle(net.kyori.adventure.title.Title.title(
+                            Component.text(winner.getName(), NamedTextColor.GOLD, TextDecoration.BOLD),
+                            winnerTitle.color(NamedTextColor.YELLOW),
+                            net.kyori.adventure.title.Title.Times.times(
+                                    java.time.Duration.ofMillis(500),
+                                    java.time.Duration.ofMillis(3000),
+                                    java.time.Duration.ofMillis(1000)
+                            )
+                    ));
                 } else {
                     player.sendMessage(plugin.getMessageManager().getPrefixedComponent("game.end.no-winner"));
                 }
@@ -499,7 +526,17 @@ public class GameManager {
                 // Очистити інвентар
                 player.getInventory().clear();
                 player.setGameMode(GameMode.ADVENTURE);
+                
+                // Відновити стандартні атрибути
+                player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(20.0);
+                player.setHealth(20.0);
+                player.getAttribute(Attribute.GENERIC_JUMP_STRENGTH).setBaseValue(0.42); // Стандартне значення
             }
+        }
+        
+        // Феєрверки навколо переможця
+        if (winner != null && winner.isOnline()) {
+            spawnFireworksAroundWinner(winner);
         }
 
         // Затримка перед телепортацією в хаб (5 секунд)
@@ -688,6 +725,16 @@ public class GameManager {
         }
         player.getInventory().setItem(8, leaveItem); // Останній слот
     }
+    
+    private void giveModeSelectionItem(Player player) {
+        ItemStack modeItem = new ItemStack(Material.COMPASS);
+        ItemMeta meta = modeItem.getItemMeta();
+        if (meta != null) {
+            meta.displayName(plugin.getMessageManager().getComponent("game.lobby.mode-selection-item"));
+            modeItem.setItemMeta(meta);
+        }
+        player.getInventory().setItem(0, modeItem); // Перший слот
+    }
 
     private void giveSkipWaitItem(Player player) {
         ItemStack skipItem = new ItemStack(Material.CLOCK);
@@ -759,6 +806,223 @@ public class GameManager {
                 game.addCageBlock(playerId, blockLoc);
             }
         }
+    }
+    
+    /**
+     * Запустити режим підняття лави
+     */
+    private void startRisingLava(Game game, Arena arena) {
+        // Встановити початкову та максимальну висоту лави
+        game.setCurrentLavaY(arena.getMinY());
+        game.setMaxLavaY(arena.getMaxY());
+        
+        // Отримати тривалість гри
+        long maxGameDuration = plugin.getConfigManager().getMaxGameDuration(); // в секундах
+        
+        // Обчислити швидкість підняття (блоків за секунду)
+        int totalHeight = arena.getMaxY() - arena.getMinY();
+        
+        // Підняття лави кожні N тіків
+        // Ми хочемо, щоб лава піднялась на всю висоту за час гри
+        // тіків на гру = maxGameDuration * 20
+        // тіків між підняттями = (maxGameDuration * 20) / totalHeight
+        long ticksBetweenRises = (maxGameDuration * 20) / Math.max(totalHeight, 1);
+        
+        // Мінімум 20 тіків (1 секунда) між підняттями
+        ticksBetweenRises = Math.max(20, ticksBetweenRises);
+        
+        BukkitTask task = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+            if (game.getState() != GameState.ACTIVE) {
+                return;
+            }
+            
+            int currentY = game.getCurrentLavaY();
+            int maxY = game.getMaxLavaY();
+            
+            // Перевірити чи лава досягла максимальної висоти
+            if (currentY >= maxY) {
+                return;
+            }
+            
+            // Підняти лаву на 1 блок
+            currentY++;
+            game.setCurrentLavaY(currentY);
+            
+            // Заповнити шар лави
+            Location lobby = arena.getLobby();
+            if (lobby == null || lobby.getWorld() == null) {
+                return;
+            }
+            
+            World world = lobby.getWorld();
+            
+            // Визначити область для заповнення лавою (навколо всіх стовпів)
+            List<Location> pillars = arena.getPillars();
+            if (pillars.isEmpty()) {
+                return;
+            }
+            
+            // Знайти межі арени на основі стовпів
+            int minX = Integer.MAX_VALUE;
+            int maxX = Integer.MIN_VALUE;
+            int minZ = Integer.MAX_VALUE;
+            int maxZ = Integer.MIN_VALUE;
+            
+            for (Location pillar : pillars) {
+                if (pillar != null) {
+                    minX = Math.min(minX, pillar.getBlockX());
+                    maxX = Math.max(maxX, pillar.getBlockX());
+                    minZ = Math.min(minZ, pillar.getBlockZ());
+                    maxZ = Math.max(maxZ, pillar.getBlockZ());
+                }
+            }
+            
+            // Додати відступ
+            int padding = 20;
+            minX -= padding;
+            maxX += padding;
+            minZ -= padding;
+            maxZ += padding;
+            
+            // Заповнити шар лави
+            for (int x = minX; x <= maxX; x++) {
+                for (int z = minZ; z <= maxZ; z++) {
+                    Location blockLoc = new Location(world, x, currentY, z);
+                    if (world.getBlockAt(blockLoc).getType() == Material.AIR) {
+                        world.getBlockAt(blockLoc).setType(Material.LAVA);
+                    }
+                }
+            }
+            
+        }, 0L, ticksBetweenRises);
+        
+        game.setLavaTask(task.getTaskId());
+    }
+    
+    /**
+     * Застосувати ефект Jump Boost I до всіх гравців
+     */
+    private void applyJumpBoost(Game game) {
+        for (UUID playerId : game.getAlivePlayers()) {
+            Player player = Bukkit.getPlayer(playerId);
+            if (player != null) {
+                player.addPotionEffect(new org.bukkit.potion.PotionEffect(
+                        org.bukkit.potion.PotionEffectType.JUMP_BOOST, 
+                        Integer.MAX_VALUE, 
+                        0, 
+                        false, 
+                        false
+                ));
+            }
+        }
+    }
+    
+    /**
+     * Застосувати ефект No Jump до всіх гравців (блокування стрибків)
+     */
+    private void applyNoJump(Game game) {
+        for (UUID playerId : game.getAlivePlayers()) {
+            Player player = Bukkit.getPlayer(playerId);
+            if (player != null) {
+                // Використовуємо атрибут Jump Strength замість ефекту - набагато оптимальніше
+                player.getAttribute(Attribute.GENERIC_JUMP_STRENGTH).setBaseValue(0.0);
+            }
+        }
+    }
+    
+    /**
+     * Застосувати ефект Darkness до всіх гравців (обмежена видимість)
+     */
+    private void applyDarkness(Game game) {
+        for (UUID playerId : game.getAlivePlayers()) {
+            Player player = Bukkit.getPlayer(playerId);
+            if (player != null) {
+                // Ефект сліпоти для обмеженої видимості
+                player.addPotionEffect(new org.bukkit.potion.PotionEffect(
+                        org.bukkit.potion.PotionEffectType.BLINDNESS, 
+                        Integer.MAX_VALUE, 
+                        0, 
+                        false, 
+                        false
+                ));
+            }
+        }
+    }
+
+    
+    /**
+     * Запустити феєрверки навколо переможця
+     */
+    private void spawnFireworksAroundWinner(Player winner) {
+        Location winnerLoc = winner.getLocation();
+        World world = winnerLoc.getWorld();
+        
+        if (world == null) {
+            return;
+        }
+        
+        // Запускати феєрверки протягом 5 секунд (100 тіків)
+        final int[] count = {0};
+        BukkitTask task = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+            if (count[0] >= 10 || !winner.isOnline()) { // 10 феєрверків (по 2 на секунду)
+                return;
+            }
+            
+            // Випадкова позиція навколо гравця (радіус 3-5 блоків)
+            double angle = Math.random() * 2 * Math.PI;
+            double radius = 3 + Math.random() * 2;
+            double x = winnerLoc.getX() + Math.cos(angle) * radius;
+            double z = winnerLoc.getZ() + Math.sin(angle) * radius;
+            double y = winnerLoc.getY() + 1;
+            
+            Location fireworkLoc = new Location(world, x, y, z);
+            
+            // Створити феєрверк
+            org.bukkit.entity.Firework firework = world.spawn(fireworkLoc, org.bukkit.entity.Firework.class);
+            org.bukkit.inventory.meta.FireworkMeta meta = firework.getFireworkMeta();
+            
+            // Випадковий колір
+            org.bukkit.Color[] colors = {
+                org.bukkit.Color.RED, 
+                org.bukkit.Color.YELLOW, 
+                org.bukkit.Color.LIME, 
+                org.bukkit.Color.AQUA, 
+                org.bukkit.Color.FUCHSIA,
+                org.bukkit.Color.ORANGE,
+                org.bukkit.Color.WHITE
+            };
+            org.bukkit.Color color1 = colors[(int) (Math.random() * colors.length)];
+            org.bukkit.Color color2 = colors[(int) (Math.random() * colors.length)];
+            
+            // Випадковий тип ефекту
+            org.bukkit.FireworkEffect.Type[] types = {
+                org.bukkit.FireworkEffect.Type.BALL,
+                org.bukkit.FireworkEffect.Type.BALL_LARGE,
+                org.bukkit.FireworkEffect.Type.STAR,
+                org.bukkit.FireworkEffect.Type.BURST
+            };
+            org.bukkit.FireworkEffect.Type type = types[(int) (Math.random() * types.length)];
+            
+            // Створити ефект
+            org.bukkit.FireworkEffect effect = org.bukkit.FireworkEffect.builder()
+                    .withColor(color1, color2)
+                    .withFade(org.bukkit.Color.WHITE)
+                    .with(type)
+                    .trail(true)
+                    .flicker(Math.random() > 0.5)
+                    .build();
+            
+            meta.addEffect(effect);
+            meta.setPower(0); // Швидкий вибух
+            firework.setFireworkMeta(meta);
+            
+            count[0]++;
+        }, 0L, 10L); // Кожні 0.5 секунди
+        
+        // Скасувати таск через 5 секунд
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            Bukkit.getScheduler().cancelTask(task.getTaskId());
+        }, 100L);
     }
 
     public void shutdown() {

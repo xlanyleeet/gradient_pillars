@@ -26,6 +26,15 @@ public class Game {
     private boolean wasActive; // Чи гра була активною (для визначення чи треба регенерувати світ)
     private int countdownTimeLeft; // Час що залишився до початку гри
     private final Map<UUID, List<Location>> playerCageBlocks; // Блоки клітки для кожного гравця
+    
+    // Голосування за режим гри
+    private final Map<UUID, GameMode> modeVotes; // Голоси гравців за режим
+    private GameMode selectedMode; // Обраний режим після голосування
+    
+    // Режим підняття лави
+    private int lavaTask; // ID таска для підняття лави
+    private int currentLavaY; // Поточна висота лави
+    private int maxLavaY; // Максимальна висота лави
 
     public Game(String id, GameManager gameManager, String arenaName) {
         this.id = id;
@@ -36,9 +45,14 @@ public class Game {
         this.spectators = new HashSet<>();
         this.pillarAssignments = new HashMap<>();
         this.playerCageBlocks = new HashMap<>();
+        this.modeVotes = new HashMap<>();
         this.state = GameState.WAITING;
         this.itemCooldown = 0;
         this.wasActive = false;
+        this.selectedMode = GameMode.NORMAL; // За замовчуванням звичайний режим
+        this.lavaTask = 0;
+        this.currentLavaY = 0;
+        this.maxLavaY = 0;
     }
 
     public String getId() {
@@ -215,6 +229,105 @@ public class Game {
         playerCageBlocks.clear();
     }
 
+    // ========================================
+    // Методи для голосування за режим
+    // ========================================
+    
+    /**
+     * Проголосувати за режим гри
+     * @param playerId UUID гравця
+     * @param mode Режим за який голосує гравець
+     */
+    public void voteForMode(UUID playerId, GameMode mode) {
+        if (state == GameState.WAITING || state == GameState.COUNTDOWN) {
+            modeVotes.put(playerId, mode);
+        }
+    }
+    
+    /**
+     * Отримати голос гравця
+     * @param playerId UUID гравця
+     * @return Режим за який проголосував гравець, або null
+     */
+    public GameMode getPlayerVote(UUID playerId) {
+        return modeVotes.get(playerId);
+    }
+    
+    /**
+     * Підрахувати голоси та визначити переможний режим
+     * @return Режим з найбільшою кількістю голосів
+     */
+    public GameMode calculateWinningMode() {
+        if (modeVotes.isEmpty()) {
+            return GameMode.NORMAL;
+        }
+        
+        Map<GameMode, Integer> voteCounts = new HashMap<>();
+        for (GameMode mode : modeVotes.values()) {
+            voteCounts.put(mode, voteCounts.getOrDefault(mode, 0) + 1);
+        }
+        
+        GameMode winningMode = GameMode.NORMAL;
+        int maxVotes = 0;
+        
+        for (Map.Entry<GameMode, Integer> entry : voteCounts.entrySet()) {
+            if (entry.getValue() > maxVotes) {
+                maxVotes = entry.getValue();
+                winningMode = entry.getKey();
+            }
+        }
+        
+        return winningMode;
+    }
+    
+    /**
+     * Отримати кількість голосів за кожен режим
+     * @return Мапа режимів та їх кількості голосів
+     */
+    public Map<GameMode, Integer> getVoteCounts() {
+        Map<GameMode, Integer> voteCounts = new HashMap<>();
+        for (GameMode mode : modeVotes.values()) {
+            voteCounts.put(mode, voteCounts.getOrDefault(mode, 0) + 1);
+        }
+        return voteCounts;
+    }
+    
+    public GameMode getSelectedMode() {
+        return selectedMode;
+    }
+    
+    public void setSelectedMode(GameMode selectedMode) {
+        this.selectedMode = selectedMode;
+    }
+    
+    // ========================================
+    // Методи для режиму підняття лави
+    // ========================================
+    
+    public int getLavaTask() {
+        return lavaTask;
+    }
+    
+    public void setLavaTask(int lavaTask) {
+        this.lavaTask = lavaTask;
+    }
+    
+    public int getCurrentLavaY() {
+        return currentLavaY;
+    }
+    
+    public void setCurrentLavaY(int currentLavaY) {
+        this.currentLavaY = currentLavaY;
+    }
+    
+    public int getMaxLavaY() {
+        return maxLavaY;
+    }
+    
+    public void setMaxLavaY(int maxLavaY) {
+        this.maxLavaY = maxLavaY;
+    }
+
     /**
      * Скинути гру до початкового стану (для перевикористання)
      */
@@ -225,6 +338,7 @@ public class Game {
         spectators.clear();
         pillarAssignments.clear();
         clearAllCageBlocks();
+        modeVotes.clear();
 
         // Скинути стан
         state = GameState.WAITING;
@@ -238,6 +352,7 @@ public class Game {
         countdownTask = 0;
         gameTask = 0;
         itemTask = 0;
+        lavaTask = 0;
 
         // Скинути час та кулдаун
         gameStartTime = 0;
@@ -245,5 +360,10 @@ public class Game {
 
         // Скинути прапорець активності
         wasActive = false;
+        
+        // Скинути режим
+        selectedMode = GameMode.NORMAL;
+        currentLavaY = 0;
+        maxLavaY = 0;
     }
 }

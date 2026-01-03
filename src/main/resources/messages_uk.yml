@@ -39,6 +39,7 @@ game:
   
   end:
     winner: "&6&l{player} &aпереміг!"
+    winner-title: "переміг!"
     no-winner: "&cНічия! Немає переможця!"
     game-ended: "&eГра завершена!"
   
@@ -58,11 +59,22 @@ game:
   lobby:
     leave-item: "&cПокинути арену"
     skip-wait-item: "&e&lПропустити очікування &7(ПКМ)"
+    mode-selection-item: "&6&lОбрати режим гри &7(ПКМ)"
+  
+  mode:
+    voted: "&aВи проголосували за режим: &6{mode}"
+    active: "&e&lРежим гри: &6&l{mode}\n&7{description}"
 
 # GUI
 gui:
   arena-selection:
     title: "&6&lВиберіть арену"
+  
+  mode-selection:
+    title: "Оберіть режим гри"
+    votes: "Голосів: "
+    voted: "✓ Ви проголосували за цей режим"
+    click-to-select: "Клацніть щоб обрати"
     
     status:
       available: "&aДоступна"
@@ -83,6 +95,30 @@ gui:
       missing-pillars: "&7- Пілари"
       missing-lobby: "&7- Лобі"
   
+# Режими гри
+mode:
+  normal:
+    name: "Звичайний"
+    description: "Стандартний режим гри"
+  rising-lava:
+    name: "Підняття лави"
+    description: "Лава поступово піднімається догори"
+  two-rows-hearts:
+    name: "2 ряди сердець"
+    description: "Подвійне здоров'я - 40 очок здоров'я"
+  one-heart:
+    name: "1 серце"
+    description: "Екстремальний режим - всього 2 очки здоров'я"
+  jump-boost:
+    name: "Стрибок 1"
+    description: "Постійний ефект стрибка I рівня"
+  no-jump:
+    name: "Без стрибка"
+    description: "Гравці не можуть стрибати взагалі"
+  darkness:
+    name: "Темрява"
+    description: "Обмежена видимість - лише пару блоків навколо"
+
 # Арени
 arena:
   created: "&aАрену &6{arena} &aуспішно створено! Використовуйте /gp setup для налаштування."
