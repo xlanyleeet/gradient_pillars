@@ -46,19 +46,23 @@ public class GUIListener implements Listener {
                 GameMode[] modes = GameMode.values();
                 if (modeIndex < modes.length) {
                     GameMode selectedMode = modes[modeIndex];
-                // Зареєструвати голос
-                game.voteForMode(player.getUniqueId(), selectedMode);
+                    
+                    // Зареєструвати голос
+                    game.voteForMode(player.getUniqueId(), selectedMode);
 
-                // Повідомити гравця
-                String modeName = plugin.getMessageManager().getMessage(selectedMode.getTranslationKey() + ".name");
-                player.sendMessage(plugin.getMessageManager().getPrefixedComponent(
-                        "game.mode.voted",
-                        "mode", modeName));
+                    // Повідомити гравця
+                    String modeName = plugin.getMessageManager().getMessage(selectedMode.getTranslationKey() + ".name");
+                    player.sendMessage(plugin.getMessageManager().getPrefixedComponent(
+                            "game.mode.voted",
+                            "mode", modeName));
 
-                // Оновити GUI для відображення нового голосу
-                GameModeSelectionGUI gui = new GameModeSelectionGUI(plugin, game);
-                gui.open(player);
+                    // Оновити GUI для відображення нового голосу
+                    GameModeSelectionGUI gui = new GameModeSelectionGUI(plugin, game);
+                    gui.open(player);
                 }
+            }
+            return;
+        }
 
         // Перевіряємо чи це GUI вибору арени через InventoryHolder
         if (!(event.getInventory().getHolder() instanceof ArenaSelectionHolder)) {
