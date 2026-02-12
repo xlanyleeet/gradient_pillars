@@ -110,7 +110,7 @@ public class GameManager {
         // Знайти вільний стовп для гравця
         List<Location> pillars = arena.getPillars();
         int pillarIndex = game.getPlayerCount() - 1; // Індекс для нового гравця
-        
+
         if (pillarIndex >= pillars.size()) {
             player.sendMessage(plugin.getMessageManager().getPrefixedComponent("errors.no-free-pillar"));
             game.removePlayer(player.getUniqueId());
@@ -221,7 +221,7 @@ public class GameManager {
         }
     }
 
-    private Game findGameByArena(String arenaName) {
+    public Game findGameByArena(String arenaName) {
         return games.values().stream()
                 .filter(g -> g.getArenaName().equals(arenaName))
                 .findFirst()
@@ -247,7 +247,7 @@ public class GameManager {
 
                 if (timeLeft <= 0) {
                     startGame(game);
-                    Bukkit.getScheduler().cancelTask(game.getCountdownTask());
+                    game.getCountdownTask().cancel();
                     return;
                 }
 
@@ -274,7 +274,7 @@ public class GameManager {
             }
         }, 0L, 20L);
 
-        game.setCountdownTask(task.getTaskId());
+        game.setCountdownTask(task);
     }
 
     public void skipCountdown(Game game) {
@@ -287,9 +287,9 @@ public class GameManager {
     }
 
     private void cancelCountdown(Game game) {
-        if (game.getCountdownTask() != 0) {
-            Bukkit.getScheduler().cancelTask(game.getCountdownTask());
-            game.setCountdownTask(0);
+        if (game.getCountdownTask() != null) {
+            game.getCountdownTask().cancel();
+            game.setCountdownTask(null);
         }
         game.setState(GameState.WAITING);
         updateWaitingBossBar(game);
@@ -305,9 +305,6 @@ public class GameManager {
         if (arena == null) {
             return;
         }
-
-        // Видалити блоки лобі очікування в радіусі 10 блоків від спавну лобі
-        removeLobbyWaitingBlocks(arena);
 
         // Гравці вже на стовпах в клітках - тільки змінити режим гри та видалити клітки
         for (UUID playerId : game.getPlayers()) {
@@ -336,36 +333,6 @@ public class GameManager {
         startItemTimer(game);
     }
 
-    private void removeLobbyWaitingBlocks(Arena arena) {
-        Location lobby = arena.getLobby();
-        if (lobby == null || lobby.getWorld() == null) {
-            return;
-        }
-
-        World world = lobby.getWorld();
-        int centerX = lobby.getBlockX();
-        int centerY = lobby.getBlockY();
-        int centerZ = lobby.getBlockZ();
-        int radius = 10;
-
-        // Видалити всі блоки в радіусі 10 блоків від спавну лобі
-        for (int x = centerX - radius; x <= centerX + radius; x++) {
-            for (int y = centerY - radius; y <= centerY + radius; y++) {
-                for (int z = centerZ - radius; z <= centerZ + radius; z++) {
-                    // Перевірка відстані (сферичний радіус)
-                    double distance = Math.sqrt(
-                            Math.pow(x - centerX, 2) +
-                                    Math.pow(y - centerY, 2) +
-                                    Math.pow(z - centerZ, 2));
-
-                    if (distance <= radius) {
-                        world.getBlockAt(x, y, z).setType(Material.AIR);
-                    }
-                }
-            }
-        }
-    }
-
     private void startGameTimer(Game game) {
         BukkitTask task = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
             long elapsed = (System.currentTimeMillis() - game.getGameStartTime()) / 1000;
@@ -382,7 +349,7 @@ public class GameManager {
 
         }, 0L, 20L);
 
-        game.setGameTask(task.getTaskId());
+        game.setGameTask(task);
     }
 
     private void startItemTimer(Game game) {
@@ -403,7 +370,7 @@ public class GameManager {
 
         }, 0L, 20L);
 
-        game.setItemTask(task.getTaskId());
+        game.setItemTask(task);
     }
 
     private void giveItemsToPlayers(Game game) {
@@ -470,14 +437,14 @@ public class GameManager {
         }
 
         // Скасувати всі таймери
-        if (game.getCountdownTask() != 0) {
-            Bukkit.getScheduler().cancelTask(game.getCountdownTask());
+        if (game.getCountdownTask() != null) {
+            game.getCountdownTask().cancel();
         }
-        if (game.getGameTask() != 0) {
-            Bukkit.getScheduler().cancelTask(game.getGameTask());
+        if (game.getGameTask() != null) {
+            game.getGameTask().cancel();
         }
-        if (game.getItemTask() != 0) {
-            Bukkit.getScheduler().cancelTask(game.getItemTask());
+        if (game.getItemTask() != null) {
+            game.getItemTask().cancel();
         }
 
         // Повідомлення про переможця
@@ -713,9 +680,10 @@ public class GameManager {
 
     /**
      * Створює клітку зі скла навколо гравця (3x3x3 по периметру)
-     * @param game Гра до якої відноситься клітка
+     * 
+     * @param game     Гра до якої відноситься клітка
      * @param playerId UUID гравця
-     * @param center Центр клітки (позиція гравця)
+     * @param center   Центр клітки (позиція гравця)
      */
     private void createGlassCage(Game game, UUID playerId, Location center) {
         World world = center.getWorld();
