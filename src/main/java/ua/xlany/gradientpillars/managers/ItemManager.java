@@ -22,6 +22,7 @@ import java.util.function.Predicate;
 import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Level;
+import ua.xlany.gradientpillars.models.ItemCategory;
 
 public class ItemManager {
 
@@ -81,10 +82,11 @@ public class ItemManager {
     private void initializeItems() {
         FileConfiguration config = itemsConfigManager.getConfig();
 
-        loadCategory(config, "weapons", weapons, this::isWeapon, 1);
-        loadCategory(config, "armor", armor, this::isArmor, 1);
-        loadCategory(config, "food", food, this::isFood, 1);
-        loadCategory(config, "blocks", blocks, this::isBlockItem, 1);
+        loadCategory(config, ItemCategory.WEAPONS.getKey(), weapons, this::isWeapon, 1);
+        loadCategory(config, ItemCategory.ARMOR.getKey(), armor, this::isArmor, 1);
+        loadCategory(config, ItemCategory.FOOD.getKey(), food, this::isFood, 1);
+        loadCategory(config, ItemCategory.BLOCKS.getKey(), blocks, this::isBlockItem, 1);
+        loadCategory(config, ItemCategory.TOOLS.getKey(), tools, this::isTool, 1);
         loadCategory(config, "tools", tools, this::isTool, 1);
         loadPotions(config);
     }
@@ -105,8 +107,7 @@ public class ItemManager {
         target.clear();
 
         ConfigurationSection section = config.getConfigurationSection("categories." + key);
-        boolean dynamic = section == null || section.getBoolean("dynamic", true);
-        if (dynamic) {
+        if (section == null || section.getBoolean("dynamic", true)) {
             generateCategoryItems(target, filter, defaultAmount);
             return;
         }
@@ -159,8 +160,7 @@ public class ItemManager {
         potions.clear();
 
         ConfigurationSection section = config.getConfigurationSection("categories.potions");
-        boolean dynamic = section == null || section.getBoolean("dynamic", false);
-        if (dynamic) {
+        if (section == null || section.getBoolean("dynamic", false)) {
             initializeDefaultPotions();
             return;
         }
@@ -429,42 +429,42 @@ public class ItemManager {
     }
 
     public ItemStack getRandomItem() {
-        List<String> weightedCategories = new ArrayList<>();
+        List<ItemCategory> weightedCategories = new ArrayList<>();
 
         if (plugin.getConfigManager().isWeaponsEnabled()) {
             int weight = plugin.getConfigManager().getWeaponsWeight();
             for (int i = 0; i < weight; i++) {
-                weightedCategories.add("weapons");
+                weightedCategories.add(ItemCategory.WEAPONS);
             }
         }
         if (plugin.getConfigManager().isArmorEnabled()) {
             int weight = plugin.getConfigManager().getArmorWeight();
             for (int i = 0; i < weight; i++) {
-                weightedCategories.add("armor");
+                weightedCategories.add(ItemCategory.ARMOR);
             }
         }
         if (plugin.getConfigManager().isFoodEnabled()) {
             int weight = plugin.getConfigManager().getFoodWeight();
             for (int i = 0; i < weight; i++) {
-                weightedCategories.add("food");
+                weightedCategories.add(ItemCategory.FOOD);
             }
         }
         if (plugin.getConfigManager().isBlocksEnabled()) {
             int weight = plugin.getConfigManager().getBlocksWeight();
             for (int i = 0; i < weight; i++) {
-                weightedCategories.add("blocks");
+                weightedCategories.add(ItemCategory.BLOCKS);
             }
         }
         if (plugin.getConfigManager().isPotionsEnabled()) {
             int weight = plugin.getConfigManager().getPotionsWeight();
             for (int i = 0; i < weight; i++) {
-                weightedCategories.add("potions");
+                weightedCategories.add(ItemCategory.POTIONS);
             }
         }
         if (plugin.getConfigManager().isToolsEnabled()) {
             int weight = plugin.getConfigManager().getToolsWeight();
             for (int i = 0; i < weight; i++) {
-                weightedCategories.add("tools");
+                weightedCategories.add(ItemCategory.TOOLS);
             }
         }
 
@@ -472,16 +472,15 @@ public class ItemManager {
             return new ItemStack(Material.STICK);
         }
 
-        String category = weightedCategories.get(random.nextInt(weightedCategories.size()));
+        ItemCategory category = weightedCategories.get(random.nextInt(weightedCategories.size()));
 
         List<ItemStack> categoryItems = switch (category) {
-            case "weapons" -> weapons;
-            case "armor" -> armor;
-            case "food" -> food;
-            case "blocks" -> blocks;
-            case "potions" -> potions;
-            case "tools" -> tools;
-            default -> new ArrayList<>();
+            case WEAPONS -> weapons;
+            case ARMOR -> armor;
+            case FOOD -> food;
+            case BLOCKS -> blocks;
+            case POTIONS -> potions;
+            case TOOLS -> tools;
         };
 
         if (categoryItems.isEmpty()) {
