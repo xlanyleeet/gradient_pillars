@@ -11,17 +11,15 @@ import java.util.List;
 public class PlayCommand implements SubCommand {
 
     private final GradientPillars plugin;
-    private final ArenaSelectionGUI gui;
 
     public PlayCommand(GradientPillars plugin) {
         this.plugin = plugin;
-        this.gui = new ArenaSelectionGUI(plugin);
     }
 
     @Override
     public boolean execute(CommandSender sender, String[] args) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage("§cЦя команда тільки для гравців!");
+            sender.sendMessage(plugin.getMessageManager().getPrefixedComponent("commands.player-only"));
             return false;
         }
 
@@ -32,7 +30,7 @@ public class PlayCommand implements SubCommand {
         }
 
         // Відкриваємо GUI
-        gui.open(player);
+        new ArenaSelectionGUI(plugin).open(player);
         return true;
     }
 

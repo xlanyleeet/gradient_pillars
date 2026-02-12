@@ -1,6 +1,7 @@
 package ua.xlany.gradientpillars.listeners;
 
 import org.bukkit.Material;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -60,7 +61,7 @@ public class LobbyListener implements Listener {
 
                 // Повідомити всіх гравців
                 for (java.util.UUID playerId : game.getPlayers()) {
-                    Player p = org.bukkit.Bukkit.getPlayer(playerId);
+                    Player p = Bukkit.getPlayer(playerId);
                     if (p != null) {
                         p.sendMessage(plugin.getMessageManager().getPrefixedComponent(
                                 "game.start.skip-wait", "player", player.getName()));

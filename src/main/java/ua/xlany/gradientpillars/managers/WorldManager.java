@@ -70,14 +70,15 @@ public class WorldManager {
         // === КРОК 2: Розпакування ZIP (АСИНХРОННО) ===
         File worldFolder = new File(Bukkit.getWorldContainer(), worldName);
 
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        Bukkit.getAsyncScheduler().runNow(plugin, (t) -> {
             try {
                 long startTime = System.currentTimeMillis();
                 ZipUtil.unzipWorld(backupZipFile, worldFolder);
                 long time = System.currentTimeMillis() - startTime;
                 plugin.getLogger().info("✓ Розпаковано за " + time + " мс");
                 deleteWorldTrash(worldName);
-                Bukkit.getScheduler().runTask(plugin, () -> {
+                
+                Bukkit.getGlobalRegionScheduler().run(plugin, (t2) -> {
                     plugin.getLogger().info("▶ Крок 4: Завантаження світу...");
 
                     WorldCreator wc = new WorldCreator(worldName);
@@ -92,7 +93,8 @@ public class WorldManager {
                     newWorld.setAutoSave(true);
                     plugin.getArenaManager().rebindArenaWorld(worldName, newWorld);
                     plugin.getLogger().info("✓ Світ завантажено");
-                    Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                    
+                    Bukkit.getRegionScheduler().runDelayed(plugin, newWorld, newWorld.getSpawnLocation().getBlockX(), newWorld.getSpawnLocation().getBlockZ(), (t3) -> {
                         newWorld.getChunkAt(newWorld.getSpawnLocation());
                     }, 20L);
                 });

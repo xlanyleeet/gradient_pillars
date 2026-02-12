@@ -1,7 +1,8 @@
 package ua.xlany.gradientpillars.listeners;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Bukkit;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -35,10 +36,10 @@ public class PlayerListener implements Listener {
             // Обробити смерть гравця (елімінація, повідомлення)
             plugin.getGameManager().handlePlayerDeath(player);
 
-            // Автоматичний respawn через 1 тік для уникнення екрану смерті
-            Bukkit.getScheduler().runTask(plugin, () -> {
+            // Автоматичний respawn
+            player.getScheduler().run(plugin, (t) -> {
                 player.spigot().respawn();
-            });
+            }, null);
         }
     }
 
@@ -55,7 +56,7 @@ public class PlayerListener implements Listener {
 
                 // Переконатись що світ встановлено
                 if (spectator.getWorld() == null && arena.getWorldName() != null) {
-                    org.bukkit.World world = org.bukkit.Bukkit.getWorld(arena.getWorldName());
+                    World world = Bukkit.getWorld(arena.getWorldName());
                     if (world != null) {
                         spectator.setWorld(world);
                     }
@@ -65,11 +66,11 @@ public class PlayerListener implements Listener {
 
                 // Якщо гравець мертвий (не живий в грі) - одразу встановити режим спектатора
                 if (!game.isPlayerAlive(player.getUniqueId())) {
-                    Bukkit.getScheduler().runTask(plugin, () -> {
+                    player.getScheduler().run(plugin, (t) -> {
                         player.setGameMode(org.bukkit.GameMode.SPECTATOR);
                         player.sendMessage(
                                 plugin.getMessageManager().getPrefixedComponent("game.spectator.now-spectating"));
-                    });
+                    }, null);
                 }
             }
         }
