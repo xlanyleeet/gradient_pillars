@@ -107,11 +107,54 @@ public class GameManager {
 
         playerGames.put(player.getUniqueId(), game);
 
+        // Знайти вільний стовп для гравця
+        List<Location> pillars = arena.getPillars();
+        int pillarIndex = game.getPlayerCount() - 1; // Індекс для нового гравця
+        
+        if (pillarIndex >= pillars.size()) {
+            player.sendMessage(plugin.getMessageManager().getPrefixedComponent("errors.no-free-pillar"));
+            game.removePlayer(player.getUniqueId());
+            playerGames.remove(player.getUniqueId());
+            return false;
+        }
+
+        Location pillar = pillars.get(pillarIndex);
+        if (pillar == null) {
+            player.sendMessage(plugin.getMessageManager().getPrefixedComponent("errors.pillar-not-set"));
+            game.removePlayer(player.getUniqueId());
+            playerGames.remove(player.getUniqueId());
+            return false;
+        }
+
+        // Переконатись що світ встановлено
+        World arenaWorld = arena.getWorldName() != null ? Bukkit.getWorld(arena.getWorldName()) : null;
+        if (arenaWorld == null) {
+            plugin.getLogger().severe("Світ арени не знайдено: " + arena.getWorldName());
+            player.sendMessage(plugin.getMessageManager().getPrefixedComponent("errors.world-not-found"));
+            game.removePlayer(player.getUniqueId());
+            playerGames.remove(player.getUniqueId());
+            return false;
+        }
+
+        if (pillar.getWorld() == null) {
+            pillar.setWorld(arenaWorld);
+        }
+
+        // Призначити стовп гравцю
+        game.assignPillar(player.getUniqueId(), pillarIndex);
+
+        // Телепортувати на стовп (+3 блоки вгору) в клітці зі скла
+        Location spawnLocation = pillar.clone().add(0, 3, 0);
+        player.teleport(spawnLocation);
+
         // Очистити інвентар
         player.getInventory().clear();
         player.setHealth(20.0);
         player.setFoodLevel(20);
         player.setGameMode(GameMode.ADVENTURE);
+
+        // Створити клітку зі скла навколо гравця
+        createGlassCage(game, player.getUniqueId(), spawnLocation);
 
         // Дати предмет для виходу з гри
         giveLeaveItem(player);
@@ -146,6 +189,9 @@ public class GameManager {
 
         game.removePlayer(player.getUniqueId());
 
+        // Видалити клітку гравця
+        game.removeCageBlocks(player.getUniqueId());
+
         // Видалити з BossBar
         if (game.getBossBar() != null) {
             game.getBossBar().removeViewer(player);
@@ -175,7 +221,7 @@ public class GameManager {
         }
     }
 
-    public Game findGameByArena(String arenaName) {
+    private Game findGameByArena(String arenaName) {
         return games.values().stream()
                 .filter(g -> g.getArenaName().equals(arenaName))
                 .findFirst()
@@ -188,7 +234,7 @@ public class GameManager {
         int countdownTime = plugin.getConfigManager().getCountdownTime();
         game.setCountdownTimeLeft(countdownTime);
 
-        BukkitTask task = new org.bukkit.scheduler.BukkitRunnable() {
+        BukkitTask task = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
             @Override
             public void run() {
                 int timeLeft = game.getCountdownTimeLeft();
@@ -201,7 +247,7 @@ public class GameManager {
 
                 if (timeLeft <= 0) {
                     startGame(game);
-                    cancelCountdown(game);
+                    Bukkit.getScheduler().cancelTask(game.getCountdownTask());
                     return;
                 }
 
@@ -226,9 +272,9 @@ public class GameManager {
 
                 game.setCountdownTimeLeft(timeLeft - 1);
             }
-        }.runTaskTimer(plugin, 0L, 20L);
+        }, 0L, 20L);
 
-        game.setCountdownTask(task);
+        game.setCountdownTask(task.getTaskId());
     }
 
     public void skipCountdown(Game game) {
@@ -241,9 +287,9 @@ public class GameManager {
     }
 
     private void cancelCountdown(Game game) {
-        if (game.getCountdownTask() != null) {
-            game.getCountdownTask().cancel();
-            game.setCountdownTask(null);
+        if (game.getCountdownTask() != 0) {
+            Bukkit.getScheduler().cancelTask(game.getCountdownTask());
+            game.setCountdownTask(0);
         }
         game.setState(GameState.WAITING);
         updateWaitingBossBar(game);
@@ -260,37 +306,20 @@ public class GameManager {
             return;
         }
 
-        // Телепортувати гравців на стовпи
-        List<Location> pillars = arena.getPillars();
-        List<UUID> players = new ArrayList<>(game.getPlayers());
-        Collections.shuffle(players);
+        // Видалити блоки лобі очікування в радіусі 10 блоків від спавну лобі
+        removeLobbyWaitingBlocks(arena);
 
-        World arenaWorld = arena.getWorldName() != null ? Bukkit.getWorld(arena.getWorldName()) : null;
-        if (arenaWorld == null) {
-            plugin.getLogger().severe("Світ арени не знайдено: " + arena.getWorldName());
-            return;
-        }
-
-        for (int i = 0; i < players.size() && i < pillars.size(); i++) {
-            UUID playerId = players.get(i);
+        // Гравці вже на стовпах в клітках - тільки змінити режим гри та видалити клітки
+        for (UUID playerId : game.getPlayers()) {
             Player player = Bukkit.getPlayer(playerId);
-            if (player != null && pillars.get(i) != null) {
-                Location pillar = pillars.get(i).clone();
-
-                // Переконатись що світ встановлено
-                if (pillar.getWorld() == null) {
-                    pillar.setWorld(arenaWorld);
-                }
-
-                int finalI = i; // Effectivelly final for lambda
-                player.getScheduler().run(plugin, (t) -> {
-                    player.teleportAsync(pillar);
-                    player.setGameMode(GameMode.SURVIVAL);
-                    player.getInventory().clear(); // Очистити інвентар (прибрати ліжко)
-                    game.assignPillar(playerId, finalI);
-                }, null);
+            if (player != null) {
+                player.setGameMode(GameMode.SURVIVAL);
+                player.getInventory().clear(); // Очистити інвентар (прибрати предмети очікування)
             }
         }
+
+        // Видалити всі клітки через 1 тік
+        Bukkit.getScheduler().runTaskLater(plugin, () -> game.clearAllCageBlocks(), 1L);
 
         // Повідомлення
         for (UUID playerId : game.getPlayers()) {
@@ -307,63 +336,86 @@ public class GameManager {
         startItemTimer(game);
     }
 
-    private void startGameTimer(Game game) {
-        BukkitTask task = new org.bukkit.scheduler.BukkitRunnable() {
-            @Override
-            public void run() {
-                long elapsed = (System.currentTimeMillis() - game.getGameStartTime()) / 1000;
-                long maxDuration = plugin.getConfigManager().getMaxGameDuration();
-                long remaining = maxDuration - elapsed;
+    private void removeLobbyWaitingBlocks(Arena arena) {
+        Location lobby = arena.getLobby();
+        if (lobby == null || lobby.getWorld() == null) {
+            return;
+        }
 
-                if (remaining <= 0) {
-                    endGame(game, null);
-                    cancel();
-                    return;
+        World world = lobby.getWorld();
+        int centerX = lobby.getBlockX();
+        int centerY = lobby.getBlockY();
+        int centerZ = lobby.getBlockZ();
+        int radius = 10;
+
+        // Видалити всі блоки в радіусі 10 блоків від спавну лобі
+        for (int x = centerX - radius; x <= centerX + radius; x++) {
+            for (int y = centerY - radius; y <= centerY + radius; y++) {
+                for (int z = centerZ - radius; z <= centerZ + radius; z++) {
+                    // Перевірка відстані (сферичний радіус)
+                    double distance = Math.sqrt(
+                            Math.pow(x - centerX, 2) +
+                                    Math.pow(y - centerY, 2) +
+                                    Math.pow(z - centerZ, 2));
+
+                    if (distance <= radius) {
+                        world.getBlockAt(x, y, z).setType(Material.AIR);
+                    }
                 }
-
-                // Оновити BossBar
-                updateGameBossBar(game, remaining);
             }
-        }.runTaskTimer(plugin, 0L, 20L);
+        }
+    }
 
-        game.setGameTask(task);
+    private void startGameTimer(Game game) {
+        BukkitTask task = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+            long elapsed = (System.currentTimeMillis() - game.getGameStartTime()) / 1000;
+            long maxDuration = plugin.getConfigManager().getMaxGameDuration();
+            long remaining = maxDuration - elapsed;
+
+            if (remaining <= 0) {
+                endGame(game, null);
+                return;
+            }
+
+            // Оновити BossBar
+            updateGameBossBar(game, remaining);
+
+        }, 0L, 20L);
+
+        game.setGameTask(task.getTaskId());
     }
 
     private void startItemTimer(Game game) {
-        BukkitTask task = new org.bukkit.scheduler.BukkitRunnable() {
-            @Override
-            public void run() {
-                if (game.getState() != GameState.ACTIVE) {
-                    return;
-                }
-
-                game.decrementItemCooldown();
-
-                // Оновити експ бар
-                updateExpBar(game);
-
-                if (game.getItemCooldown() <= 0) {
-                    giveItemsToPlayers(game);
-                    game.resetItemCooldown();
-                }
+        BukkitTask task = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+            if (game.getState() != GameState.ACTIVE) {
+                return;
             }
-        }.runTaskTimer(plugin, 0L, 20L);
 
-        game.setItemTask(task);
+            game.decrementItemCooldown();
+
+            // Оновити експ бар
+            updateExpBar(game);
+
+            if (game.getItemCooldown() <= 0) {
+                giveItemsToPlayers(game);
+                game.resetItemCooldown();
+            }
+
+        }, 0L, 20L);
+
+        game.setItemTask(task.getTaskId());
     }
 
     private void giveItemsToPlayers(Game game) {
         for (UUID playerId : game.getAlivePlayers()) {
             Player player = Bukkit.getPlayer(playerId);
             if (player != null) {
-                player.getScheduler().run(plugin, (t) -> {
-                    ItemStack item = plugin.getItemManager().getRandomItem();
-                    player.getInventory().addItem(item);
+                ItemStack item = plugin.getItemManager().getRandomItem();
+                player.getInventory().addItem(item);
 
-                    String itemName = item.getType().name().toLowerCase().replace("_", " ");
-                    player.sendMessage(plugin.getMessageManager().getPrefixedComponent(
-                            "game.items.received", "item", itemName));
-                }, null);
+                String itemName = item.getType().name().toLowerCase().replace("_", " ");
+                player.sendMessage(plugin.getMessageManager().getPrefixedComponent(
+                        "game.items.received", "item", itemName));
             }
         }
     }
@@ -418,14 +470,14 @@ public class GameManager {
         }
 
         // Скасувати всі таймери
-        if (game.getCountdownTask() != null) {
-            game.getCountdownTask().cancel();
+        if (game.getCountdownTask() != 0) {
+            Bukkit.getScheduler().cancelTask(game.getCountdownTask());
         }
-        if (game.getGameTask() != null) {
-            game.getGameTask().cancel();
+        if (game.getGameTask() != 0) {
+            Bukkit.getScheduler().cancelTask(game.getGameTask());
         }
-        if (game.getItemTask() != null) {
-            game.getItemTask().cancel();
+        if (game.getItemTask() != 0) {
+            Bukkit.getScheduler().cancelTask(game.getItemTask());
         }
 
         // Повідомлення про переможця
@@ -445,10 +497,8 @@ public class GameManager {
                 }
 
                 // Очистити інвентар
-                player.getScheduler().run(plugin, (t) -> {
-                    player.getInventory().clear();
-                    player.setGameMode(GameMode.ADVENTURE);
-                }, null);
+                player.getInventory().clear();
+                player.setGameMode(GameMode.ADVENTURE);
             }
         }
 
@@ -459,48 +509,43 @@ public class GameManager {
             for (UUID playerId : game.getPlayers()) {
                 Player player = Bukkit.getPlayer(playerId);
                 if (player != null) {
-                    teleportToHub(player); // Uses teleportAsync? Need to check.
+                    teleportToHub(player);
+                    playerGames.remove(playerId);
                 }
             }
-            // resetGame(game);
-        } else {
-            new org.bukkit.scheduler.BukkitRunnable() {
-                @Override
-                public void run() {
-                    for (UUID playerId : game.getPlayers()) {
-                        Player player = Bukkit.getPlayer(playerId);
-                        if (player != null) {
-                            teleportToHub(player);
-                        }
-                    }
-                    resetGame(game);
+            game.reset();
+            return;
+        }
+
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            // Телепортувати всіх гравців в хаб
+            for (UUID playerId : game.getPlayers()) {
+                Player player = Bukkit.getPlayer(playerId);
+                if (player != null) {
+                    teleportToHub(player);
+                    playerGames.remove(playerId);
                 }
-            }.runTaskLater(plugin, 100L);
-        }
-    }
+            }
 
-    private void resetGame(Game game) {
-        // Видалити гравців з мапи активних ігор
-        for (UUID playerId : game.getPlayers()) {
-            playerGames.remove(playerId);
-        }
+            // Перевірити чи гра була активною (чи треба регенерувати світ)
+            boolean needsRegeneration = game.wasActive();
 
-        // Перевірити чи гра була активною (чи треба регенерувати світ)
-        boolean needsRegeneration = game.wasActive();
+            // СПОЧАТКУ скидаємо гру (очищуємо гравців, стан → WAITING)
+            game.reset();
 
-        // СПОЧАТКУ скидаємо гру (очищуємо гравців, стан → WAITING)
-        game.reset();
+            if (needsRegeneration) {
+                // Гра була активною - відновлюємо світ
+                plugin.getLogger()
+                        .info("Гру на арені '" + game.getArenaName() + "' скинуто. Починаю відновлення світу...");
+                plugin.getArenaManager().restoreWorld(game.getArenaName());
+            } else {
+                // Гра не почалась (був тільки лобі) - світ чистий, регенерація не потрібна
+                plugin.getLogger().info("Гру на арені '" + game.getArenaName()
+                        + "' скинуто. Світ не змінювався, регенерація пропущена.");
+            }
 
-        if (needsRegeneration) {
-            // Гра була активною - відновлюємо світ
-            plugin.getLogger()
-                    .info("Гру на арені '" + game.getArenaName() + "' скинуто. Починаю відновлення світу...");
-            plugin.getArenaManager().restoreWorld(game.getArenaName());
-        } else {
-            // Гра не почалась (був тільки лобі) - світ чистий, регенерація не потрібна
-            plugin.getLogger().info("Гру на арені '" + game.getArenaName()
-                    + "' скинуто. Світ не змінювався, регенерація пропущена.");
-        }
+            // Гра готова приймати нових гравців!
+        }, 100L); // 5 секунд = 100 тіків
     }
 
     private void teleportToHub(Player player) {
@@ -524,14 +569,8 @@ public class GameManager {
                 plugin.getConfigManager().getHubYaw(),
                 plugin.getConfigManager().getHubPitch());
 
-        player.teleportAsync(hubLocation).thenAccept(success -> {
-            if (success) {
-                // Ensure gamemode change happens on the entity thread
-                player.getScheduler().run(plugin, (t) -> {
-                    player.setGameMode(GameMode.SURVIVAL); // Відновити режим виживання
-                }, null);
-            }
-        });
+        player.teleport(hubLocation);
+        player.setGameMode(GameMode.SURVIVAL); // Відновити режим виживання
     }
 
     private void updateWaitingBossBar(Game game) {
@@ -616,10 +655,8 @@ public class GameManager {
         for (UUID playerId : game.getAlivePlayers()) {
             Player player = Bukkit.getPlayer(playerId);
             if (player != null) {
-                player.getScheduler().run(plugin, (t) -> {
-                    player.setLevel(level);
-                    player.setExp(progress);
-                }, null);
+                player.setLevel(level);
+                player.setExp(progress);
             }
         }
     }
@@ -670,6 +707,56 @@ public class GameManager {
                 if (itemInSlot != null && itemInSlot.getType() == Material.CLOCK) {
                     player.getInventory().setItem(4, null);
                 }
+            }
+        }
+    }
+
+    /**
+     * Створює клітку зі скла навколо гравця (3x3x3 по периметру)
+     * @param game Гра до якої відноситься клітка
+     * @param playerId UUID гравця
+     * @param center Центр клітки (позиція гравця)
+     */
+    private void createGlassCage(Game game, UUID playerId, Location center) {
+        World world = center.getWorld();
+        if (world == null) {
+            return;
+        }
+
+        int centerX = center.getBlockX();
+        int centerY = center.getBlockY();
+        int centerZ = center.getBlockZ();
+
+        // Створюємо клітку 3x3x3
+        // Підлога (Y-1): всі 9 блоків
+        for (int x = -1; x <= 1; x++) {
+            for (int z = -1; z <= 1; z++) {
+                Location blockLoc = new Location(world, centerX + x, centerY - 1, centerZ + z);
+                world.getBlockAt(blockLoc).setType(Material.GLASS);
+                game.addCageBlock(playerId, blockLoc);
+            }
+        }
+
+        // Стіни (Y та Y+1): тільки по периметру
+        for (int y = 0; y <= 1; y++) {
+            for (int x = -1; x <= 1; x++) {
+                for (int z = -1; z <= 1; z++) {
+                    // Пропускаємо центральний блок (там де гравець)
+                    if (x != 0 || z != 0) {
+                        Location blockLoc = new Location(world, centerX + x, centerY + y, centerZ + z);
+                        world.getBlockAt(blockLoc).setType(Material.GLASS);
+                        game.addCageBlock(playerId, blockLoc);
+                    }
+                }
+            }
+        }
+
+        // Дах (Y+2): всі 9 блоків
+        for (int x = -1; x <= 1; x++) {
+            for (int z = -1; z <= 1; z++) {
+                Location blockLoc = new Location(world, centerX + x, centerY + 2, centerZ + z);
+                world.getBlockAt(blockLoc).setType(Material.GLASS);
+                game.addCageBlock(playerId, blockLoc);
             }
         }
     }
