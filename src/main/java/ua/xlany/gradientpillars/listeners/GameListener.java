@@ -119,7 +119,6 @@ public class GameListener implements Listener {
     }
 
     @EventHandler
-    @SuppressWarnings("deprecation")
     public void onPlayerPickupArrow(PlayerPickupArrowEvent event) {
         Player player = event.getPlayer();
         Game game = plugin.getGameManager().getPlayerGame(player.getUniqueId());

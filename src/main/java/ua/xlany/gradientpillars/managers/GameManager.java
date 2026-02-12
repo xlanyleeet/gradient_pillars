@@ -107,30 +107,54 @@ public class GameManager {
 
         playerGames.put(player.getUniqueId(), game);
 
-        // Телепортувати в лобі
-        if (arena.getLobby() != null) {
-            Location lobby = arena.getLobby().clone();
-
-            // Переконатись що світ встановлено
-            if (lobby.getWorld() == null && arena.getWorldName() != null) {
-                World world = Bukkit.getWorld(arena.getWorldName());
-                if (world != null) {
-                    lobby.setWorld(world);
-                } else {
-                    plugin.getLogger().severe("Світ арени не знайдено: " + arena.getWorldName());
-                    player.sendMessage(plugin.getMessageManager().getPrefixedComponent("errors.world-not-found"));
-                    return false;
-                }
-            }
-
-            player.teleport(lobby);
+        // Знайти вільний стовп для гравця
+        List<Location> pillars = arena.getPillars();
+        int pillarIndex = game.getPlayerCount() - 1; // Індекс для нового гравця
+        
+        if (pillarIndex >= pillars.size()) {
+            player.sendMessage(plugin.getMessageManager().getPrefixedComponent("errors.no-free-pillar"));
+            game.removePlayer(player.getUniqueId());
+            playerGames.remove(player.getUniqueId());
+            return false;
         }
+
+        Location pillar = pillars.get(pillarIndex);
+        if (pillar == null) {
+            player.sendMessage(plugin.getMessageManager().getPrefixedComponent("errors.pillar-not-set"));
+            game.removePlayer(player.getUniqueId());
+            playerGames.remove(player.getUniqueId());
+            return false;
+        }
+
+        // Переконатись що світ встановлено
+        World arenaWorld = arena.getWorldName() != null ? Bukkit.getWorld(arena.getWorldName()) : null;
+        if (arenaWorld == null) {
+            plugin.getLogger().severe("Світ арени не знайдено: " + arena.getWorldName());
+            player.sendMessage(plugin.getMessageManager().getPrefixedComponent("errors.world-not-found"));
+            game.removePlayer(player.getUniqueId());
+            playerGames.remove(player.getUniqueId());
+            return false;
+        }
+
+        if (pillar.getWorld() == null) {
+            pillar.setWorld(arenaWorld);
+        }
+
+        // Призначити стовп гравцю
+        game.assignPillar(player.getUniqueId(), pillarIndex);
+
+        // Телепортувати на стовп (+3 блоки вгору) в клітці зі скла
+        Location spawnLocation = pillar.clone().add(0, 3, 0);
+        player.teleport(spawnLocation);
 
         // Очистити інвентар
         player.getInventory().clear();
         player.setHealth(20.0);
         player.setFoodLevel(20);
         player.setGameMode(GameMode.ADVENTURE);
+
+        // Створити клітку зі скла навколо гравця
+        createGlassCage(game, player.getUniqueId(), spawnLocation);
 
         // Дати предмет для виходу з гри
         giveLeaveItem(player);
@@ -164,6 +188,9 @@ public class GameManager {
         }
 
         game.removePlayer(player.getUniqueId());
+
+        // Видалити клітку гравця
+        game.removeCageBlocks(player.getUniqueId());
 
         // Видалити з BossBar
         if (game.getBossBar() != null) {
@@ -282,34 +309,17 @@ public class GameManager {
         // Видалити блоки лобі очікування в радіусі 10 блоків від спавну лобі
         removeLobbyWaitingBlocks(arena);
 
-        // Телепортувати гравців на стовпи
-        List<Location> pillars = arena.getPillars();
-        List<UUID> players = new ArrayList<>(game.getPlayers());
-        Collections.shuffle(players);
-
-        World arenaWorld = arena.getWorldName() != null ? Bukkit.getWorld(arena.getWorldName()) : null;
-        if (arenaWorld == null) {
-            plugin.getLogger().severe("Світ арени не знайдено: " + arena.getWorldName());
-            return;
-        }
-
-        for (int i = 0; i < players.size() && i < pillars.size(); i++) {
-            UUID playerId = players.get(i);
+        // Гравці вже на стовпах в клітках - тільки змінити режим гри та видалити клітки
+        for (UUID playerId : game.getPlayers()) {
             Player player = Bukkit.getPlayer(playerId);
-            if (player != null && pillars.get(i) != null) {
-                Location pillar = pillars.get(i).clone();
-
-                // Переконатись що світ встановлено
-                if (pillar.getWorld() == null) {
-                    pillar.setWorld(arenaWorld);
-                }
-
-                player.teleport(pillar);
+            if (player != null) {
                 player.setGameMode(GameMode.SURVIVAL);
-                player.getInventory().clear(); // Очистити інвентар (прибрати ліжко)
-                game.assignPillar(playerId, i);
+                player.getInventory().clear(); // Очистити інвентар (прибрати предмети очікування)
             }
         }
+
+        // Видалити всі клітки через 1 тік
+        Bukkit.getScheduler().runTaskLater(plugin, () -> game.clearAllCageBlocks(), 1L);
 
         // Повідомлення
         for (UUID playerId : game.getPlayers()) {
@@ -697,6 +707,56 @@ public class GameManager {
                 if (itemInSlot != null && itemInSlot.getType() == Material.CLOCK) {
                     player.getInventory().setItem(4, null);
                 }
+            }
+        }
+    }
+
+    /**
+     * Створює клітку зі скла навколо гравця (3x3x3 по периметру)
+     * @param game Гра до якої відноситься клітка
+     * @param playerId UUID гравця
+     * @param center Центр клітки (позиція гравця)
+     */
+    private void createGlassCage(Game game, UUID playerId, Location center) {
+        World world = center.getWorld();
+        if (world == null) {
+            return;
+        }
+
+        int centerX = center.getBlockX();
+        int centerY = center.getBlockY();
+        int centerZ = center.getBlockZ();
+
+        // Створюємо клітку 3x3x3
+        // Підлога (Y-1): всі 9 блоків
+        for (int x = -1; x <= 1; x++) {
+            for (int z = -1; z <= 1; z++) {
+                Location blockLoc = new Location(world, centerX + x, centerY - 1, centerZ + z);
+                world.getBlockAt(blockLoc).setType(Material.GLASS);
+                game.addCageBlock(playerId, blockLoc);
+            }
+        }
+
+        // Стіни (Y та Y+1): тільки по периметру
+        for (int y = 0; y <= 1; y++) {
+            for (int x = -1; x <= 1; x++) {
+                for (int z = -1; z <= 1; z++) {
+                    // Пропускаємо центральний блок (там де гравець)
+                    if (x != 0 || z != 0) {
+                        Location blockLoc = new Location(world, centerX + x, centerY + y, centerZ + z);
+                        world.getBlockAt(blockLoc).setType(Material.GLASS);
+                        game.addCageBlock(playerId, blockLoc);
+                    }
+                }
+            }
+        }
+
+        // Дах (Y+2): всі 9 блоків
+        for (int x = -1; x <= 1; x++) {
+            for (int z = -1; z <= 1; z++) {
+                Location blockLoc = new Location(world, centerX + x, centerY + 2, centerZ + z);
+                world.getBlockAt(blockLoc).setType(Material.GLASS);
+                game.addCageBlock(playerId, blockLoc);
             }
         }
     }
