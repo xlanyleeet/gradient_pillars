@@ -113,7 +113,7 @@ public class GameManager {
         // Знайти вільний стовп для гравця
         List<Location> pillars = arena.getPillars();
         int pillarIndex = game.getPlayerCount() - 1; // Індекс для нового гравця
-        
+
         if (pillarIndex >= pillars.size()) {
             player.sendMessage(plugin.getMessageManager().getPrefixedComponent("errors.no-free-pillar"));
             game.removePlayer(player.getUniqueId());
@@ -227,7 +227,7 @@ public class GameManager {
         }
     }
 
-    private Game findGameByArena(String arenaName) {
+    public Game findGameByArena(String arenaName) {
         return games.values().stream()
                 .filter(g -> g.getArenaName().equals(arenaName))
                 .findFirst()
@@ -253,7 +253,7 @@ public class GameManager {
 
                 if (timeLeft <= 0) {
                     startGame(game);
-                    Bukkit.getScheduler().cancelTask(game.getCountdownTask());
+                    game.getCountdownTask().cancel();
                     return;
                 }
 
@@ -280,7 +280,7 @@ public class GameManager {
             }
         }, 0L, 20L);
 
-        game.setCountdownTask(task.getTaskId());
+        game.setCountdownTask(task);
     }
 
     public void skipCountdown(Game game) {
@@ -293,9 +293,9 @@ public class GameManager {
     }
 
     private void cancelCountdown(Game game) {
-        if (game.getCountdownTask() != 0) {
-            Bukkit.getScheduler().cancelTask(game.getCountdownTask());
-            game.setCountdownTask(0);
+        if (game.getCountdownTask() != null) {
+            game.getCountdownTask().cancel();
+            game.setCountdownTask(null);
         }
         game.setState(GameState.WAITING);
         updateWaitingBossBar(game);
@@ -394,7 +394,7 @@ public class GameManager {
 
         }, 0L, 20L);
 
-        game.setGameTask(task.getTaskId());
+        game.setGameTask(task);
     }
 
     private void startItemTimer(Game game) {
@@ -415,7 +415,7 @@ public class GameManager {
 
         }, 0L, 20L);
 
-        game.setItemTask(task.getTaskId());
+        game.setItemTask(task);
     }
 
     private void giveItemsToPlayers(Game game) {
@@ -482,14 +482,14 @@ public class GameManager {
         }
 
         // Скасувати всі таймери
-        if (game.getCountdownTask() != 0) {
-            Bukkit.getScheduler().cancelTask(game.getCountdownTask());
+        if (game.getCountdownTask() != null) {
+            game.getCountdownTask().cancel();
         }
-        if (game.getGameTask() != 0) {
-            Bukkit.getScheduler().cancelTask(game.getGameTask());
+        if (game.getGameTask() != null) {
+            game.getGameTask().cancel();
         }
-        if (game.getItemTask() != 0) {
-            Bukkit.getScheduler().cancelTask(game.getItemTask());
+        if (game.getItemTask() != null) {
+            game.getItemTask().cancel();
         }
         if (game.getLavaTask() != 0) {
             Bukkit.getScheduler().cancelTask(game.getLavaTask());
