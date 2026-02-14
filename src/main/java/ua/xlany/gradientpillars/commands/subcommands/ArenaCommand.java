@@ -26,6 +26,7 @@ public class ArenaCommand implements SubCommand {
         registerArenaSubCommand(new EditArenaCommand(plugin));
         registerArenaSubCommand(new DeleteArenaCommand(plugin));
         registerArenaSubCommand(new AddPillarCommand(plugin));
+        registerArenaSubCommand(new SetLobbyCommand(plugin));
         registerArenaSubCommand(new SetSpectatorCommand(plugin));
         registerArenaSubCommand(new SetWorldCommand(plugin));
         registerArenaSubCommand(new SetMinPlayersCommand(plugin));
