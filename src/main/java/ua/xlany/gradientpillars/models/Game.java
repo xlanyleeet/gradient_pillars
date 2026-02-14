@@ -3,7 +3,6 @@ package ua.xlany.gradientpillars.models;
 import net.kyori.adventure.bossbar.BossBar;
 import org.bukkit.Location;
 import ua.xlany.gradientpillars.managers.GameManager;
-import org.bukkit.scheduler.BukkitTask;
 
 import java.util.*;
 
@@ -19,9 +18,9 @@ public class Game {
 
     private GameState state;
     private BossBar bossBar;
-    private BukkitTask countdownTask;
-    private BukkitTask gameTask;
-    private BukkitTask itemTask;
+    private int countdownTask;
+    private int gameTask;
+    private int itemTask;
     private long gameStartTime;
     private int itemCooldown;
     private boolean wasActive; // Чи гра була активною (для визначення чи треба регенерувати світ)
@@ -124,27 +123,27 @@ public class Game {
         this.bossBar = bossBar;
     }
 
-    public BukkitTask getCountdownTask() {
+    public int getCountdownTask() {
         return countdownTask;
     }
 
-    public void setCountdownTask(BukkitTask countdownTask) {
+    public void setCountdownTask(int countdownTask) {
         this.countdownTask = countdownTask;
     }
 
-    public BukkitTask getGameTask() {
+    public int getGameTask() {
         return gameTask;
     }
 
-    public void setGameTask(BukkitTask gameTask) {
+    public void setGameTask(int gameTask) {
         this.gameTask = gameTask;
     }
 
-    public BukkitTask getItemTask() {
+    public int getItemTask() {
         return itemTask;
     }
 
-    public void setItemTask(BukkitTask itemTask) {
+    public void setItemTask(int itemTask) {
         this.itemTask = itemTask;
     }
 
@@ -236,9 +235,9 @@ public class Game {
         }
 
         // Скинути таски
-        countdownTask = null;
-        gameTask = null;
-        itemTask = null;
+        countdownTask = 0;
+        gameTask = 0;
+        itemTask = 0;
 
         // Скинути час та кулдаун
         gameStartTime = 0;

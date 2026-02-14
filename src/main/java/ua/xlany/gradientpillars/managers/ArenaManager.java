@@ -86,6 +86,14 @@ public class ArenaManager {
 
         World world = worldName != null ? Bukkit.getWorld(worldName) : null;
 
+        Location lobby = loadLocation(config, "arena.lobby");
+        if (lobby != null) {
+            if (world != null) {
+                lobby.setWorld(world);
+            }
+            arena.setLobby(lobby);
+        }
+
         Location spectator = loadLocation(config, "arena.spectator");
         if (spectator != null) {
             if (world != null) {
@@ -141,6 +149,10 @@ public class ArenaManager {
 
         config.set("arena.world", arena.getWorldName());
 
+        if (arena.getLobby() != null) {
+            saveLocation(config, "arena.lobby", arena.getLobby());
+        }
+
         if (arena.getSpectator() != null) {
             saveLocation(config, "arena.spectator", arena.getSpectator());
         }
@@ -175,6 +187,7 @@ public class ArenaManager {
             // Логування деталей збереження
             plugin.getLogger().info("Збережено арену: " + arena.getName());
             plugin.getLogger().info("  Світ: " + arena.getWorldName());
+            plugin.getLogger().info("  Лобі: " + (arena.getLobby() != null ? "встановлено" : "не встановлено"));
             plugin.getLogger()
                     .info("  Спектатор: " + (arena.getSpectator() != null ? "встановлено" : "не встановлено"));
             plugin.getLogger().info("  Стовпів: " + arena.getPillarCount());

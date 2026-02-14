@@ -10,6 +10,7 @@ public class Arena {
 
     private final String name;
     private String worldName;
+    private Location lobby;
     private Location spectator;
     private List<Location> pillars;
     private int minPlayers;
@@ -36,6 +37,17 @@ public class Arena {
 
     public void setWorldName(String worldName) {
         this.worldName = worldName;
+    }
+
+    public Location getLobby() {
+        return lobby;
+    }
+
+    public void setLobby(Location lobby) {
+        this.lobby = lobby;
+        if (worldName == null && lobby != null) {
+            worldName = lobby.getWorld().getName();
+        }
     }
 
     public Location getSpectator() {
@@ -73,7 +85,7 @@ public class Arena {
     }
 
     public boolean isSetup() {
-        return worldName != null && spectator != null && !pillars.isEmpty()
+        return worldName != null && lobby != null && spectator != null && !pillars.isEmpty()
                 && pillars.stream().anyMatch(p -> p != null) && minPlayers > 0 && maxPlayers >= minPlayers;
     }
 
@@ -119,6 +131,10 @@ public class Arena {
         }
 
         this.worldName = world.getName();
+
+        if (lobby != null) {
+            lobby.setWorld(world);
+        }
 
         if (spectator != null) {
             spectator.setWorld(world);

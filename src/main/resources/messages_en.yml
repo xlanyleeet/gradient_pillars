@@ -2,119 +2,110 @@
 # English Language
 # ========================================
 
-prefix: "<dark_gray>[<gold>Gradient Pillars<dark_gray>]<reset> "
+prefix: "&8[&6Gradient Pillars&8]&r "
 
 # Commands
 commands:
-  no-permission: "<red>You don't have permission to execute this command!"
-  player-only: "<red>This command can only be executed as a player!"
-  usage: "<red>Usage: <white>{usage}"
-  reload: "<green>Configuration reloaded successfully!"
-  stats:
-    header: "<gold>Statistics for <white>{player}<gold>:"
-    wins: "<gray>Wins: <green>{wins}"
-    losses: "<gray>Losses: <red>{losses}"
-    games-played: "<gray>Games Played: <yellow>{count}"
-    win-rate: "<gray>Win Rate: <aqua>{rate}%"
-    not-found: "<red>Player <gold>{player} <red>not found or has no stats!"
+  no-permission: "&cYou don't have permission to execute this command!"
+  player-only: "&cThis command can only be executed as a player!"
+  usage: "&cUsage: &f{usage}"
+  reload: "&aConfiguration reloaded successfully!"
 
 # Hub
 hub:
-  set: "<green>Hub set at your position!"
-  teleported: "<green>You have been teleported to the hub!"
+  set: "&aHub set at your position!"
+  teleported: "&aYou have been teleported to the hub!"
   
 # Game
 game:
   join:
-    success: "<green>You joined the game!"
-    already-in-game: "<red>You are already in a game!"
-    game-full: "<red>The game is full!"
-    already-started: "<red>The game has already started! Wait for the next round."
-    game-started: "<red>The game has already started!"
+    success: "&aYou joined the game!"
+    already-in-game: "&cYou are already in a game!"
+    game-full: "&cThe game is full!"
+    already-started: "&cThe game has already started! Wait for the next round."
+    game-started: "&cThe game has already started!"
   
-  world-restoring: "<yellow>The world is being restored after the previous game. Please wait a few seconds..."
+  world-restoring: "&eThe world is being restored after the previous game. Please wait a few seconds..."
   
   leave:
-    success: "<green>You left the game!"
-    not-in-game: "<red>You are not in a game!"
+    success: "&aYou left the game!"
+    not-in-game: "&cYou are not in a game!"
   
   start:
-    countdown: "<yellow>Game starting in <gold>{time} <yellow>seconds..."
-    started: "<green>Game started! Good luck!"
-    not-enough-players: "<red>Not enough players to start!"
-    skip-wait: "<yellow>{player} <green>skipped the wait! Game starting in 10 seconds!"
+    countdown: "&eGame starting in &6{time} &eseconds..."
+    started: "&aGame started! Good luck!"
+    not-enough-players: "&cNot enough players to start!"
+    skip-wait: "&e{player} &askipped the wait! Game starting in 10 seconds!"
   
   end:
-    winner: "<gold><bold>{player} <green>won!"
-    no-winner: "<red>Draw! No winner!"
-    game-ended: "<yellow>Game ended!"
+    winner: "&6&l{player} &awon!"
+    no-winner: "&cDraw! No winner!"
+    game-ended: "&eGame ended!"
   
   death:
-    eliminated: "<red>{player} has been eliminated!"
-    remaining: "<yellow>Players remaining: <gold>{count}"
+    eliminated: "&c{player} has been eliminated!"
+    remaining: "&ePlayers remaining: &6{count}"
   
   items:
-    received: "<green>You received an item: <gold>{item}"
-    next-in: "<yellow>Next item in <gold>{time} <yellow>seconds"
+    received: "&aYou received an item: &6{item}"
+    next-in: "&eNext item in &6{time} &eseconds"
   
   spectator:
-    now-spectating: "<yellow>You are now spectating!"
+    now-spectating: "&eYou are now spectating!"
   
-  build-limit: "<red>Cannot build above Y: <gold>{y}"
+  build-limit: "&cCannot build above Y: &6{y}"
   
   lobby:
-    leave-item: "<red>Leave Arena"
-    skip-wait-item: "<yellow><bold>Skip Wait <gray>(Right Click)"
+    leave-item: "&cLeave Arena"
+    skip-wait-item: "&e&lSkip Wait &7(Right Click)"
 
 # GUI
 gui:
   arena-selection:
-    title: "<gold><bold>Select Arena"
-    item-name: "<yellow>{arena}"
+    title: "&6&lSelect Arena"
     
     status:
-      available: "<green>Available"
-      starting: "<yellow>Starting"
-      in-progress: "<gold>Game in Progress"
-      ending: "<light_purple>Ending"
-      not-setup: "<red>Arena Not Set Up"
-      unknown: "<gray>Unknown State"
+      available: "&aAvailable"
+      starting: "&eStarting"
+      in-progress: "&6Game in Progress"
+      ending: "&dEnding"
+      not-setup: "&cArena Not Set Up"
+      unknown: "&7Unknown State"
     
     info:
-      status: "<gray>Status: {status}"
-      players: "<gray>Players: <white>{current}<gray>/<white>{max}"
-      minimum: "<gray>Minimum: <white>{min}"
-      countdown: "<gray>Countdown: <white>{time}s"
-      click-to-join: "<yellow>Click to join!"
-      cannot-join: "<red>Cannot join"
-      unavailable: "<red>Unavailable for play"
-      missing: "<gray>Missing:"
-      missing-pillars: "<gray>- Pillars"
-      missing-lobby: "<gray>- Lobby"
+      players: "&7Players: &f{current}&7/&f{max}"
+      minimum: "&7Minimum: &f{min}"
+      countdown: "&7Countdown: &f{time}s"
+      click-to-join: "&eClick to join!"
+      cannot-join: "&cCannot join"
+      unavailable: "&cUnavailable for play"
+      missing: "&7Missing:"
+      missing-pillars: "&7- Pillars"
+      missing-lobby: "&7- Lobby"
   
 # Arenas
 arena:
-  created: "<green>Arena <gold>{arena} <green>successfully created! Use /gp setup to configure."
-  already-exists: "<red>Arena <gold>{arena} <red>already exists!"
-  not-found: "<red>Arena <gold>{arena} <red>not found!"
+  created: "&aArena &6{arena} &asuccessfully created! Use /gp setup to configure."
+  already-exists: "&cArena &6{arena} &calready exists!"
+  not-found: "&cArena &6{arena} &cnot found!"
   
   setup:
-    pillar-added: "<green>Pillar #{number} added at your position!"
-    lobby-set: "<green>Lobby set at your position!"
-    spectator-set: "<green>Spectator point set at your position!"
-    world-set: "<green>Arena world set: <gold>{world}"
-    min-players-set: "<green>Minimum players set: <gold>{count}"
-    max-players-set: "<green>Maximum players set: <gold>{count}"
-    max-y-set: "<green>Maximum build height set: <gold>{y}"
-    min-y-set: "<green>Minimum Y (death threshold) set: <gold>{y}"
-    saved: "<green>Arena saved to arenas/{arena}.yml!"
+    pillar-added: "&aPillar #{number} added at your position!"
+    lobby-set: "&aLobby set at your position!"
+    spectator-set: "&aSpectator point set at your position!"
+    world-set: "&aArena world set: &6{world}"
+    min-players-set: "&aMinimum players set: &6{count}"
+    max-players-set: "&aMaximum players set: &6{count}"
+    max-y-set: "&aMaximum build height set: &6{y}"
+    min-y-set: "&aMinimum Y (death threshold) set: &6{y}"
+    saved: "&aArena saved to arenas/{arena}.yml!"
     
   backup:
-    creating: "<yellow>Creating world backup..."
-    created: "<green>Backup created!"
-    restoring: "<yellow>Restoring world..."
-    restored: "<green>World restored!"
-    failed: "<red>Backup operation failed!"
+    creating: "&eCreating world backup..."
+    created: "&aBackup created!"
+    restoring: "&eRestoring world..."
+    restored: "&aWorld restored!"
+    failed: "&cBackup operation failed!"
 
 # BossBar
 bossbar:
@@ -124,8 +115,8 @@ bossbar:
 
 # Errors
 errors:
-  general: "<red>An error occurred! Check console."
-  arena-not-found: "<red>Arena not found!"
-  arena-not-setup: "<red>Arena is not set up!"
-  world-not-found: "<red>World not found!"
-  invalid-number: "<red>Invalid number! Use a number from 1 and above."
+  general: "&cAn error occurred! Check console."
+  arena-not-found: "&cArena not found!"
+  arena-not-setup: "&cArena is not set up!"
+  world-not-found: "&cWorld not found!"
+  invalid-number: "&cInvalid number! Use a number from 1 and above."

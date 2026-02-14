@@ -1,16 +1,13 @@
 package ua.xlany.gradientpillars.gui;
 
-import com.github.stefvanschie.inventoryframework.gui.GuiItem;
-import com.github.stefvanschie.inventoryframework.gui.type.ChestGui;
-import com.github.stefvanschie.inventoryframework.pane.OutlinePane;
 import net.kyori.adventure.text.Component;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.scheduler.BukkitRunnable;
 import ua.xlany.gradientpillars.GradientPillars;
-import ua.xlany.gradientpillars.managers.ArenaManager;
 import ua.xlany.gradientpillars.models.Arena;
 import ua.xlany.gradientpillars.models.Game;
 import ua.xlany.gradientpillars.models.GameState;
@@ -21,122 +18,140 @@ import java.util.List;
 public class ArenaSelectionGUI {
 
     private final GradientPillars plugin;
-    private final ChestGui gui;
 
     public ArenaSelectionGUI(GradientPillars plugin) {
         this.plugin = plugin;
-
-        // Get legacy title for ChestGui using MessageManager helper
-        String title = plugin.getMessageManager().getLegacyString("gui.arena-selection.title");
-
-        this.gui = new ChestGui(6, title);
-
-        // Disable clicks outside by default
-        this.gui.setOnGlobalClick(event -> event.setCancelled(true));
-
-        // Auto-update task when GUI is open
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (gui.getViewers().isEmpty()) {
-                    return; // Don't update if no one is watching
-                }
-                update();
-                gui.update();
-            }
-        }.runTaskTimer(plugin, 20L, 20L);
-
-        update();
     }
 
     public void open(Player player) {
-        gui.show(player);
-    }
+        List<Arena> arenas = new ArrayList<>(plugin.getArenaManager().getArenas());
 
-    public void update() {
-        OutlinePane pane = new OutlinePane(0, 0, 9, 6);
+        // Розмір інвентаря (9, 18, 27, 36, 45, 54)
+        int size = Math.min(54, ((arenas.size() + 8) / 9) * 9);
+        if (size < 9)
+            size = 9;
 
-        ArenaManager arenaManager = plugin.getArenaManager();
-        if (arenaManager == null)
-            return;
+        Component title = plugin.getMessageManager().getComponent("gui.arena-selection.title");
+        ArenaSelectionHolder holder = new ArenaSelectionHolder();
+        Inventory gui = Bukkit.createInventory(holder, size, title);
+        holder.setInventory(gui);
 
-        List<Arena> arenas = new ArrayList<>(arenaManager.getArenas());
-
+        int slot = 0;
         for (Arena arena : arenas) {
-            ItemStack item = createArenaItem(arena);
-            GuiItem guiItem = new GuiItem(item, event -> {
-                event.setCancelled(true);
-                if (event.getWhoClicked() instanceof Player player) {
-                    plugin.getGameManager().joinGame(player, arena.getName());
-                    player.closeInventory();
-                }
-            });
-            pane.addItem(guiItem);
+            if (slot >= size)
+                break;
+
+            Game game = plugin.getGameManager().getGameByArena(arena.getName());
+            ItemStack item = createArenaItem(arena, game);
+            gui.setItem(slot, item);
+            slot++;
         }
 
-        gui.addPane(pane);
+        player.openInventory(gui);
     }
 
-    private ItemStack createArenaItem(Arena arena) {
-        Game game = plugin.getGameManager().findGameByArena(arena.getName());
-        GameState state = (game != null) ? game.getState() : GameState.WAITING;
-        int playerCount = (game != null) ? game.getPlayerCount() : 0;
-
+    private ItemStack createArenaItem(Arena arena, Game game) {
         Material material;
-        String stateKey;
+        List<Component> lore = new ArrayList<>();
 
-        switch (state) {
-            case WAITING:
-                material = Material.LIME_WOOL;
-                stateKey = "available";
-                break;
-            case COUNTDOWN:
-                material = Material.ORANGE_WOOL;
-                stateKey = "starting";
-                break;
-            case ACTIVE:
-                material = Material.RED_WOOL;
-                stateKey = "in-progress";
-                break;
-            case ENDING:
-                material = Material.RED_WOOL;
-                stateKey = "ending";
-                break;
-            default:
-                material = Material.GRAY_WOOL;
-                stateKey = "unknown";
+        // Перевіряємо чи арена налаштована
+        if (!arena.isSetup()) {
+            material = Material.RED_CONCRETE;
+            lore.add(plugin.getMessageManager().getComponent("gui.arena-selection.status.not-setup"));
+            lore.add(Component.empty());
+            lore.add(plugin.getMessageManager().getComponent("gui.arena-selection.info.missing"));
+            if (arena.getPillars().isEmpty()) {
+                lore.add(plugin.getMessageManager().getComponent("gui.arena-selection.info.missing-pillars"));
+            }
+            if (arena.getLobby() == null) {
+                lore.add(plugin.getMessageManager().getComponent("gui.arena-selection.info.missing-lobby"));
+            }
+            lore.add(Component.empty());
+            lore.add(plugin.getMessageManager().getComponent("gui.arena-selection.info.unavailable"));
+        } else if (game == null) {
+            // Арена налаштована, але гра не створена (ніхто не грає)
+            material = Material.LIME_CONCRETE;
+            lore.add(plugin.getMessageManager().getComponent("gui.arena-selection.status.available"));
+            lore.add(Component.empty());
+            lore.add(plugin.getMessageManager().getComponent("gui.arena-selection.info.players",
+                    "current", "0", "max", String.valueOf(arena.getMaxPlayers())));
+            lore.add(plugin.getMessageManager().getComponent("gui.arena-selection.info.minimum",
+                    "min", String.valueOf(arena.getMinPlayers())));
+            lore.add(Component.empty());
+            lore.add(plugin.getMessageManager().getComponent("gui.arena-selection.info.click-to-join"));
+        } else {
+            GameState state = game.getState();
+            int playerCount = game.getPlayerCount();
+            int minPlayers = arena.getMinPlayers();
+            int maxPlayers = arena.getMaxPlayers();
+
+            switch (state) {
+                case WAITING:
+                    material = Material.LIME_CONCRETE;
+                    lore.add(plugin.getMessageManager().getComponent("gui.arena-selection.status.available"));
+                    lore.add(Component.empty());
+                    lore.add(plugin.getMessageManager().getComponent("gui.arena-selection.info.players",
+                            "current", String.valueOf(playerCount), "max", String.valueOf(maxPlayers)));
+                    lore.add(plugin.getMessageManager().getComponent("gui.arena-selection.info.minimum",
+                            "min", String.valueOf(minPlayers)));
+                    lore.add(Component.empty());
+                    lore.add(plugin.getMessageManager().getComponent("gui.arena-selection.info.click-to-join"));
+                    break;
+
+                case COUNTDOWN:
+                    material = Material.YELLOW_CONCRETE;
+                    lore.add(plugin.getMessageManager().getComponent("gui.arena-selection.status.starting"));
+                    lore.add(Component.empty());
+                    lore.add(plugin.getMessageManager().getComponent("gui.arena-selection.info.players",
+                            "current", String.valueOf(playerCount), "max", String.valueOf(maxPlayers)));
+                    lore.add(plugin.getMessageManager().getComponent("gui.arena-selection.info.countdown",
+                            "time", String.valueOf(game.getCountdownTimeLeft())));
+                    lore.add(Component.empty());
+                    lore.add(plugin.getMessageManager().getComponent("gui.arena-selection.info.click-to-join"));
+                    break;
+
+                case ACTIVE:
+                    material = Material.ORANGE_CONCRETE;
+                    lore.add(plugin.getMessageManager().getComponent("gui.arena-selection.status.in-progress"));
+                    lore.add(Component.empty());
+                    lore.add(plugin.getMessageManager().getComponent("gui.arena-selection.info.players",
+                            "current", String.valueOf(playerCount), "max", String.valueOf(maxPlayers)));
+                    lore.add(Component.empty());
+                    lore.add(plugin.getMessageManager().getComponent("gui.arena-selection.info.cannot-join"));
+                    break;
+
+                case ENDING:
+                case RESTORING:
+                    material = Material.PURPLE_CONCRETE;
+                    lore.add(plugin.getMessageManager().getComponent("gui.arena-selection.status.ending"));
+                    lore.add(Component.empty());
+                    lore.add(plugin.getMessageManager().getComponent("gui.arena-selection.info.cannot-join"));
+                    break;
+
+                default:
+                    material = Material.GRAY_CONCRETE;
+                    lore.add(plugin.getMessageManager().getComponent("gui.arena-selection.status.unknown"));
+                    break;
+            }
         }
-
-        // Get value as string for replacement
-        String stateName = plugin.getMessageManager().getMessage("gui.arena-selection.status." + stateKey);
 
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
 
         if (meta != null) {
-            // Using Adventure Component for display name
-            Component nameComponent = plugin.getMessageManager().getComponent("gui.arena-selection.item-name",
-                    "arena", arena.getName());
-            meta.displayName(nameComponent);
-
-            List<Component> lore = new ArrayList<>();
-
-            // Status line
-            lore.add(plugin.getMessageManager().getComponent("gui.arena-selection.info.status",
-                    "status", stateName));
-
-            // Players line
-            lore.add(plugin.getMessageManager().getComponent("gui.arena-selection.info.players",
-                    "current", String.valueOf(playerCount),
-                    "max", String.valueOf(arena.getMaxPlayers())));
-
-            lore.add(Component.empty());
-            lore.add(plugin.getMessageManager().getComponent("gui.arena-selection.info.click-to-join"));
-
+            meta.displayName(Component.text("§6§l" + arena.getName()));
             meta.lore(lore);
             item.setItemMeta(meta);
         }
 
         return item;
+    }
+
+    public String getArenaNameFromSlot(int slot) {
+        List<Arena> arenas = new ArrayList<>(plugin.getArenaManager().getArenas());
+        if (slot >= 0 && slot < arenas.size()) {
+            return arenas.get(slot).getName();
+        }
+        return null;
     }
 }
