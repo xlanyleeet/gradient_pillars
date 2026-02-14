@@ -1,5 +1,6 @@
 package ua.xlany.gradientpillars.commands.subcommands.arena;
 
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
@@ -34,19 +35,30 @@ public class CreateArenaCommand implements ArenaSubCommand {
 
         boolean created = plugin.getArenaManager().createArena(arenaName);
         if (created) {
-            player.sendMessage("§a§l✔ §aАрену §e" + arenaName + " §aстворено!");
-            player.sendMessage("");
-            player.sendMessage("§e§l━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-            player.sendMessage("§6§lЧеклист налаштування арени:");
-            player.sendMessage("§e§l━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-            player.sendMessage("§7[ ] §e/gp arena setworld " + arenaName + " §7- Встановити світ");
-            player.sendMessage("§7[ ] §e/gp arena lobby " + arenaName + " §7- Встановити лобі");
-            player.sendMessage("§7[ ] §e/gp arena spectator " + arenaName + " §7- Точка спостерігача");
-            player.sendMessage("§7[ ] §e/gp arena addpillar 1 " + arenaName + " §7- Додати стовпи (1-16)");
-            player.sendMessage("§7[ ] §e/gp arena minplayers " + arenaName + " 2 §7- Мін. гравців (опц.)");
-            player.sendMessage("§7[ ] §e/gp arena maxplayers " + arenaName + " 16 §7- Макс. гравців (опц.)");
-            player.sendMessage("§7[ ] §e/gp arena save " + arenaName + " §7- Зберегти арену");
-            player.sendMessage("§e§l━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            player.sendMessage(MiniMessage.miniMessage()
+                    .deserialize("<green><bold>✔ <green>Арену <yellow>" + arenaName + " <green>створено!"));
+            player.sendMessage(MiniMessage.miniMessage().deserialize(""));
+            player.sendMessage(
+                    MiniMessage.miniMessage().deserialize("<yellow><bold><st>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"));
+            player.sendMessage(MiniMessage.miniMessage().deserialize("<gold><bold>Чеклист налаштування арени:"));
+            player.sendMessage(
+                    MiniMessage.miniMessage().deserialize("<yellow><bold><st>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"));
+            player.sendMessage(MiniMessage.miniMessage()
+                    .deserialize("<gray>[ ] <yellow>/gp arena setworld " + arenaName + " <gray>- Встановити світ"));
+            player.sendMessage(MiniMessage.miniMessage()
+                    .deserialize("<gray>[ ] <yellow>/gp arena lobby " + arenaName + " <gray>- Встановити лобі"));
+            player.sendMessage(MiniMessage.miniMessage()
+                    .deserialize("<gray>[ ] <yellow>/gp arena spectator " + arenaName + " <gray>- Точка спостерігача"));
+            player.sendMessage(MiniMessage.miniMessage().deserialize(
+                    "<gray>[ ] <yellow>/gp arena addpillar 1 " + arenaName + " <gray>- Додати стовпи (1-16)"));
+            player.sendMessage(MiniMessage.miniMessage().deserialize(
+                    "<gray>[ ] <yellow>/gp arena minplayers " + arenaName + " 2 <gray>- Мін. гравців (опц.)"));
+            player.sendMessage(MiniMessage.miniMessage().deserialize(
+                    "<gray>[ ] <yellow>/gp arena maxplayers " + arenaName + " 16 <gray>- Макс. гравців (опц.)"));
+            player.sendMessage(MiniMessage.miniMessage()
+                    .deserialize("<gray>[ ] <yellow>/gp arena save " + arenaName + " <gray>- Зберегти арену"));
+            player.sendMessage(
+                    MiniMessage.miniMessage().deserialize("<yellow><bold><st>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"));
         }
         return true;
     }

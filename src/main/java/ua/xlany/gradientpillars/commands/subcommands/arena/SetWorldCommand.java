@@ -1,5 +1,6 @@
 package ua.xlany.gradientpillars.commands.subcommands.arena;
 
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
@@ -20,8 +21,9 @@ public class SetWorldCommand implements ArenaSubCommand {
     @Override
     public boolean execute(Player player, String[] args) {
         if (args.length < 1) {
-            player.sendMessage("§c§l✘ §cВкажи назву арени!");
-            player.sendMessage("§7Використання: §e/gp arena setworld <arena>");
+            player.sendMessage(MiniMessage.miniMessage().deserialize("<red><bold>✘ <red>Вкажи назву арени!"));
+            player.sendMessage(
+                    MiniMessage.miniMessage().deserialize("<gray>Використання: <yellow>/gp arena setworld <arena>"));
             return true;
         }
 
@@ -29,14 +31,17 @@ public class SetWorldCommand implements ArenaSubCommand {
         Arena arena = plugin.getArenaManager().getArena(arenaName);
 
         if (arena == null) {
-            player.sendMessage("§c§l✘ §cАрени §e" + arenaName + " §cне існує!");
-            player.sendMessage("§7Створи арену: §e/gp arena create " + arenaName);
+            player.sendMessage(MiniMessage.miniMessage()
+                    .deserialize("<red><bold>✘ <red>Арени <yellow>" + arenaName + " <red>не існує!"));
+            player.sendMessage(
+                    MiniMessage.miniMessage().deserialize("<gray>Створи арену: <yellow>/gp arena create " + arenaName));
             return true;
         }
 
         String worldName = player.getWorld().getName();
         arena.setWorldName(worldName);
-        player.sendMessage("§a§l✔ §aСвіт §e" + worldName + " §aвстановлено для арени §e" + arenaName);
+        player.sendMessage(MiniMessage.miniMessage().deserialize("<green><bold>✔ <green>Світ <yellow>" + worldName
+                + " <green>встановлено для арени <yellow>" + arenaName));
 
         plugin.getArenaManager().cacheArena(arena);
         return true;

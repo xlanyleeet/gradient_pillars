@@ -128,13 +128,10 @@ public class StatsManager {
     }
 
     private void saveStats(PlayerStats stats) {
+        // Використовуємо REPLACE INTO, що працює і в MySQL/MariaDB, і в SQLite
         String query = """
-                INSERT INTO player_stats (uuid, player_name, wins, losses)
+                REPLACE INTO player_stats (uuid, player_name, wins, losses)
                 VALUES (?, ?, ?, ?)
-                ON DUPLICATE KEY UPDATE
-                player_name = VALUES(player_name),
-                wins = VALUES(wins),
-                losses = VALUES(losses)
                 """;
 
         try (Connection conn = databaseManager.getConnection();
@@ -146,7 +143,7 @@ public class StatsManager {
             stmt.setInt(4, stats.getLosses());
             stmt.executeUpdate();
 
-        } catch (SQLException e) {
+        } catch (Exception e) { // Catch Exception to handle NPE if connection is null
             plugin.getLogger().log(Level.SEVERE, "Failed to save stats for " + stats.getPlayerName(), e);
         }
     }

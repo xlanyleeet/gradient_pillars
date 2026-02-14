@@ -1,25 +1,29 @@
 package ua.xlany.gradientpillars.commands;
 
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
+import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.suggestion.Suggestions;
+import com.mojang.brigadier.suggestion.SuggestionsBuilder;
+import io.papermc.paper.command.brigadier.CommandSourceStack;
+import io.papermc.paper.command.brigadier.Commands;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabCompleter;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.bukkit.entity.Player;
 import ua.xlany.gradientpillars.GradientPillars;
 import ua.xlany.gradientpillars.commands.subcommands.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Головний обробник команди /gp
  * Делегує виконання підкомандам
  */
-public class GPCommand implements CommandExecutor, TabCompleter {
+public class GPCommand {
 
     private final Map<String, SubCommand> subCommands;
 
@@ -33,72 +37,90 @@ public class GPCommand implements CommandExecutor, TabCompleter {
         registerSubCommand(new ArenaCommand(plugin));
         registerSubCommand(new SetHubCommand(plugin));
         registerSubCommand(new ReloadCommand(plugin));
+        registerSubCommand(new StatsCommand(plugin));
     }
 
     private void registerSubCommand(SubCommand subCommand) {
         subCommands.put(subCommand.getName().toLowerCase(), subCommand);
     }
 
-    @Override
-    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command,
-            @NotNull String label, @NotNull String[] args) {
+    public void register(Commands commands) {
+        LiteralArgumentBuilder<CommandSourceStack> root = Commands.literal("gp")
+                .requires(ctx -> ctx.getSender().hasPermission("gradientpillars.command"))
+                .executes(ctx -> {
+                    sendUsage(ctx.getSource().getSender());
+                    return 1;
+                });
 
-        if (args.length == 0) {
-            sendUsage(sender);
-            return true;
+        for (SubCommand sub : subCommands.values()) {
+            root.then(Commands.literal(sub.getName())
+                    .executes(ctx -> executeSubCommand(ctx, sub, new String[0]))
+                    .then(Commands.argument("args", StringArgumentType.greedyString())
+                            .suggests((ctx, builder) -> suggestSubCommand(ctx, sub, builder))
+                            .executes(ctx -> {
+                                String argsStr = StringArgumentType.getString(ctx, "args");
+                                return executeSubCommand(ctx, sub, argsStr.split(" "));
+                            })));
         }
 
-        String subCommandName = args[0].toLowerCase();
-        SubCommand subCommand = subCommands.get(subCommandName);
+        commands.register(root.build(), "Gradient Pillars main command", List.of("gradientpillars", "pillars"));
+    }
 
-        if (subCommand == null) {
-            sendUsage(sender);
-            return true;
+    private int executeSubCommand(CommandContext<CommandSourceStack> ctx, SubCommand sub, String[] args) {
+        CommandSender sender = ctx.getSource().getSender();
+
+        // Дозволяємо виконання команди з консолі тільки для певних команд (наприклад,
+        // reload)
+        // Для більшості команд вимагаємо гравця, але перевірку краще робити всередині
+        // самої команди
+        // Тим не менш, для сумісності з існуючим кодом, де багато кастів (Player)
+        // sender,
+        // ми зробимо базову перевірку тут, але дозволимо reload для всіх.
+
+        if (!(sender instanceof Player) && !(sub instanceof ReloadCommand)) {
+            sender.sendMessage(MiniMessage.miniMessage().deserialize("<red>Only players can use this command!"));
+            return 0;
         }
 
-        // Передаємо аргументи без назви підкоманди
-        String[] subArgs = Arrays.copyOfRange(args, 1, args.length);
-        return subCommand.execute(sender, subArgs);
+        sub.execute(sender, args);
+        return 1;
     }
 
     private void sendUsage(CommandSender sender) {
-        sender.sendMessage("§e§l━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-        sender.sendMessage("§6§lGradient Pillars §8| §fКоманди");
-        sender.sendMessage("§e§l━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+        var mm = MiniMessage.miniMessage();
+        Component separator = mm.deserialize("<yellow><bold><strikethrough>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+
+        sender.sendMessage(separator);
+        sender.sendMessage(mm.deserialize("<gold><bold>Gradient Pillars <dark_gray>| <white>Команди"));
+        sender.sendMessage(separator);
+
         for (SubCommand subCommand : subCommands.values()) {
-            sender.sendMessage("§e" + subCommand.getUsage() + " §7- " + subCommand.getDescription());
+            sender.sendMessage(
+                    mm.deserialize("<yellow>" + subCommand.getUsage() + " <gray>- " + subCommand.getDescription()));
         }
-        sender.sendMessage("§e§l━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+        sender.sendMessage(separator);
     }
 
-    @Nullable
-    @Override
-    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command,
-            @NotNull String alias, @NotNull String[] args) {
+    private CompletableFuture<Suggestions> suggestSubCommand(CommandContext<CommandSourceStack> ctx, SubCommand sub,
+            SuggestionsBuilder builder) {
+        String remaining = builder.getRemaining();
+        String[] args;
 
-        List<String> completions = new ArrayList<>();
+        if (remaining.isEmpty()) {
+            args = new String[0];
+        } else {
+            args = remaining.split(" ", -1);
+        }
 
-        if (args.length == 1) {
-            // Автодоповнення назв підкоманд
-            for (String subCommandName : subCommands.keySet()) {
-                if (subCommandName.startsWith(args[0].toLowerCase())) {
-                    completions.add(subCommandName);
-                }
-            }
-        } else if (args.length >= 2) {
-            // Делегуємо автодоповнення підкоманді
-            String subCommandName = args[0].toLowerCase();
-            SubCommand subCommand = subCommands.get(subCommandName);
-
-            if (subCommand != null) {
-                String[] subArgs = Arrays.copyOfRange(args, 1, args.length);
-                List<String> subCompletions = subCommand.tabComplete(sender, subArgs);
-                if (subCompletions != null) {
-                    completions.addAll(subCompletions);
+        List<String> suggestions = sub.tabComplete(ctx.getSource().getSender(), args);
+        if (suggestions != null) {
+            String lastArg = args.length > 0 ? args[args.length - 1] : "";
+            for (String s : suggestions) {
+                if (s.toLowerCase().startsWith(lastArg.toLowerCase())) {
+                    builder.suggest(s);
                 }
             }
         }
-
-        return completions;
+        return builder.buildFuture();
     }
 }

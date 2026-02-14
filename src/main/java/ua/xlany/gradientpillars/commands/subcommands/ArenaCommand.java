@@ -26,7 +26,6 @@ public class ArenaCommand implements SubCommand {
         registerArenaSubCommand(new EditArenaCommand(plugin));
         registerArenaSubCommand(new DeleteArenaCommand(plugin));
         registerArenaSubCommand(new AddPillarCommand(plugin));
-        registerArenaSubCommand(new SetLobbyCommand(plugin));
         registerArenaSubCommand(new SetSpectatorCommand(plugin));
         registerArenaSubCommand(new SetWorldCommand(plugin));
         registerArenaSubCommand(new SetMinPlayersCommand(plugin));
@@ -82,7 +81,7 @@ public class ArenaCommand implements SubCommand {
     private void sendUsage(Player player) {
         player.sendMessage(plugin.getMessageManager().getPrefixedComponent(
                 "commands.usage", "usage",
-                "/gp arena <create|edit|delete|addpillar|lobby|spectator|setworld|minplayers|maxplayers|maxy|miny|save> [параметри]"));
+                "/gp arena <create|edit|delete|addpillar|spectator|setworld|minplayers|maxplayers|maxy|miny|save> [параметри]"));
     }
 
     @Nullable

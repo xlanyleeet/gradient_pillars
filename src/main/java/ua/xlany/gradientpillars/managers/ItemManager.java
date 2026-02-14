@@ -105,8 +105,7 @@ public class ItemManager {
         target.clear();
 
         ConfigurationSection section = config.getConfigurationSection("categories." + key);
-        boolean dynamic = section == null || section.getBoolean("dynamic", true);
-        if (dynamic) {
+        if (section == null || section.getBoolean("dynamic", true)) {
             generateCategoryItems(target, filter, defaultAmount);
             return;
         }
@@ -159,8 +158,7 @@ public class ItemManager {
         potions.clear();
 
         ConfigurationSection section = config.getConfigurationSection("categories.potions");
-        boolean dynamic = section == null || section.getBoolean("dynamic", false);
-        if (dynamic) {
+        if (section == null || section.getBoolean("dynamic", false)) {
             initializeDefaultPotions();
             return;
         }
@@ -338,6 +336,9 @@ public class ItemManager {
         Set<Material> added = EnumSet.noneOf(Material.class);
 
         for (Material material : Material.values()) {
+            if (material.name().startsWith("LEGACY_")) {
+                continue;
+            }
             if (GLOBAL_EXCLUDE.contains(material) || material.isAir() || !material.isItem()) {
                 continue;
             }

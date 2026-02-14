@@ -3,6 +3,7 @@ package ua.xlany.gradientpillars.managers;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import ua.xlany.gradientpillars.GradientPillars;
+import ua.xlany.gradientpillars.utils.ConfigUtil;
 
 import java.io.File;
 import java.util.logging.Level;
@@ -28,6 +29,14 @@ public class ItemsConfigManager {
 
     private void load() {
         this.config = YamlConfiguration.loadConfiguration(configFile);
+        updateConfig(); // Перевіряємо наявність нових ключів
+    }
+
+    private void updateConfig() {
+        if (ConfigUtil.updateConfig(plugin, "items.yml", config, configFile)) {
+            // Перезавантажуємо, якщо були зміни
+            reload();
+        }
     }
 
     public void reload() {

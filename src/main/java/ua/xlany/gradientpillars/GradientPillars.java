@@ -3,21 +3,20 @@ package ua.xlany.gradientpillars;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import ua.xlany.gradientpillars.chat.ChatManager;
+import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import ua.xlany.gradientpillars.commands.GPCommand;
+
 import ua.xlany.gradientpillars.integration.GradientPillarsPlaceholders;
-import ua.xlany.gradientpillars.listeners.ChatListener;
-import ua.xlany.gradientpillars.listeners.GUIListener;
-import ua.xlany.gradientpillars.listeners.GameListener;
-import ua.xlany.gradientpillars.listeners.LobbyListener;
-import ua.xlany.gradientpillars.listeners.PlayerListener;
-import ua.xlany.gradientpillars.listeners.WorldListener;
+import ua.xlany.gradientpillars.listeners.*;
 import ua.xlany.gradientpillars.managers.*;
+import ua.xlany.gradientpillars.utils.LibraryUtil;
 
 public class GradientPillars extends JavaPlugin {
 
     private static GradientPillars instance;
 
     // Managers
+    private LibraryUtil libraryUtil;
     private ConfigManager configManager;
     private ItemsConfigManager itemsConfigManager;
     private MessageManager messageManager;
@@ -32,6 +31,10 @@ public class GradientPillars extends JavaPlugin {
     @Override
     public void onEnable() {
         instance = this;
+
+        // Завантаження бібліотек
+        libraryUtil = new LibraryUtil(this);
+        libraryUtil.loadLibraries();
 
         getLogger().info("Ініціалізація Gradient Pillars...");
 
@@ -53,17 +56,16 @@ public class GradientPillars extends JavaPlugin {
         itemManager = new ItemManager(this);
         chatManager = new ChatManager(this);
 
-        // Реєстрація команд
-        GPCommand gpCommand = new GPCommand(this);
-        getCommand("gp").setExecutor(gpCommand);
-        getCommand("gp").setTabCompleter(gpCommand);
+        // Реєстрація команд (New Command API)
+        getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> {
+            new GPCommand(this).register(event.registrar());
+        });
 
         // Реєстрація слухачів подій
         getServer().getPluginManager().registerEvents(new PlayerListener(this), this);
         getServer().getPluginManager().registerEvents(new GameListener(this), this);
         getServer().getPluginManager().registerEvents(new LobbyListener(this), this);
         getServer().getPluginManager().registerEvents(new WorldListener(this), this);
-        getServer().getPluginManager().registerEvents(new GUIListener(this), this);
         getServer().getPluginManager().registerEvents(new ChatListener(this), this);
 
         // PlaceholderAPI інтеграція
@@ -94,6 +96,10 @@ public class GradientPillars extends JavaPlugin {
 
     public static GradientPillars getInstance() {
         return instance;
+    }
+
+    public LibraryUtil getLibraryUtil() {
+        return libraryUtil;
     }
 
     public ConfigManager getConfigManager() {

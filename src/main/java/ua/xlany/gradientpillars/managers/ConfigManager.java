@@ -3,6 +3,10 @@ package ua.xlany.gradientpillars.managers;
 import org.bukkit.configuration.file.FileConfiguration;
 import ua.xlany.gradientpillars.GradientPillars;
 
+import ua.xlany.gradientpillars.utils.ConfigUtil;
+
+import java.io.File;
+
 public class ConfigManager {
 
     private final GradientPillars plugin;
@@ -11,12 +15,28 @@ public class ConfigManager {
     public ConfigManager(GradientPillars plugin) {
         this.plugin = plugin;
         plugin.saveDefaultConfig();
+        plugin.reloadConfig();
         this.config = plugin.getConfig();
+        updateConfig();
     }
 
     public void reload() {
         plugin.reloadConfig();
         this.config = plugin.getConfig();
+        updateConfig();
+        plugin.reloadConfig(); // Перезавантажити після оновлення
+        this.config = plugin.getConfig();
+    }
+
+    // Перевіряє та додає відсутні ключі з внутрішнього config.yml
+    private void updateConfig() {
+        // Делегуємо оновлення утиліті
+        File configFile = new File(plugin.getDataFolder(), "config.yml");
+        if (ConfigUtil.updateConfig(plugin, "config.yml", config, configFile)) {
+            // Якщо були зміни, перезавантажуємо конфіг в пам'яті плагіна
+            plugin.reloadConfig();
+            this.config = plugin.getConfig();
+        }
     }
 
     public String getLanguage() {

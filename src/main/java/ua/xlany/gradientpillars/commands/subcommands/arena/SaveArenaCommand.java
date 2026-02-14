@@ -1,5 +1,6 @@
 package ua.xlany.gradientpillars.commands.subcommands.arena;
 
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
@@ -20,8 +21,9 @@ public class SaveArenaCommand implements ArenaSubCommand {
     @Override
     public boolean execute(Player player, String[] args) {
         if (args.length < 1) {
-            player.sendMessage("§c§l✘ §cВкажи назву арени!");
-            player.sendMessage("§7Використання: §e/gp arena save <arena>");
+            player.sendMessage(MiniMessage.miniMessage().deserialize("<red><bold>✘ <red>Вкажи назву арени!"));
+            player.sendMessage(
+                    MiniMessage.miniMessage().deserialize("<gray>Використання: <yellow>/gp arena save <arena>"));
             return true;
         }
 
@@ -29,35 +31,36 @@ public class SaveArenaCommand implements ArenaSubCommand {
         Arena arena = plugin.getArenaManager().getArena(arenaName);
 
         if (arena == null) {
-            player.sendMessage("§c§l✘ §cАрени §e" + arenaName + " §cне існує!");
+            player.sendMessage(MiniMessage.miniMessage()
+                    .deserialize("<red><bold>✘ <red>Арени <yellow>" + arenaName + " <red>не існує!"));
             return true;
         }
 
         // Детальна перевірка налаштування арени
         if (arena.getWorldName() == null) {
-            player.sendMessage("§c§l✘ §cАрену не налаштовано!");
-            player.sendMessage("§7  Не встановлено світ! Використай: §e/gp arena setworld " + arenaName);
-            return true;
-        }
-        if (arena.getLobby() == null) {
-            player.sendMessage("§c§l✘ §cАрену не налаштовано!");
-            player.sendMessage("§7  Не встановлено лобі! Використай: §e/gp arena lobby " + arenaName);
+            player.sendMessage(MiniMessage.miniMessage().deserialize("<red><bold>✘ <red>Арену не налаштовано!"));
+            player.sendMessage(MiniMessage.miniMessage()
+                    .deserialize("<gray>  Не встановлено світ! Використай: <yellow>/gp arena setworld " + arenaName));
             return true;
         }
         if (arena.getSpectator() == null) {
-            player.sendMessage("§c§l✘ §cАрену не налаштовано!");
-            player.sendMessage("§7  Не встановлено точку спостерігача! Використай: §e/gp arena spectator " + arenaName);
+            player.sendMessage(MiniMessage.miniMessage().deserialize("<red><bold>✘ <red>Арену не налаштовано!"));
+            player.sendMessage(MiniMessage.miniMessage().deserialize(
+                    "<gray>  Не встановлено точку спостерігача! Використай: <yellow>/gp arena spectator " + arenaName));
             return true;
         }
         if (arena.getPillarCount() == 0) {
-            player.sendMessage("§c§l✘ §cАрену не налаштовано!");
+            player.sendMessage(MiniMessage.miniMessage().deserialize("<red><bold>✘ <red>Арену не налаштовано!"));
             player.sendMessage(
-                    "§7  Не встановлено жодного стовпа! Використай: §e/gp arena addpillar <номер> " + arenaName);
+                    MiniMessage.miniMessage().deserialize(
+                            "<gray>  Не встановлено жодного стовпа! Використай: <yellow>/gp arena addpillar <номер> "
+                                    + arenaName));
             return true;
         }
 
         plugin.getArenaManager().saveArena(arena);
-        player.sendMessage("§a§l✔ §aАрену §e" + arenaName + " §aзбережено!");
+        player.sendMessage(MiniMessage.miniMessage()
+                .deserialize("<green><bold>✔ <green>Арену <yellow>" + arenaName + " <green>збережено!"));
         return true;
     }
 

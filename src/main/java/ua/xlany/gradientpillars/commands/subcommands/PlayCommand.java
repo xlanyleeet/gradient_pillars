@@ -21,7 +21,7 @@ public class PlayCommand implements SubCommand {
     @Override
     public boolean execute(CommandSender sender, String[] args) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage("§cЦя команда тільки для гравців!");
+            sender.sendMessage(plugin.getMessageManager().getPrefixedComponent("commands.player-only"));
             return false;
         }
 

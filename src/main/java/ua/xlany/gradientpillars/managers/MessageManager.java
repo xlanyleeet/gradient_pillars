@@ -1,10 +1,12 @@
 package ua.xlany.gradientpillars.managers;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import ua.xlany.gradientpillars.GradientPillars;
+
+import ua.xlany.gradientpillars.utils.ConfigUtil;
 
 import java.io.File;
 import java.io.InputStream;
@@ -38,69 +40,34 @@ public class MessageManager {
         messages = YamlConfiguration.loadConfiguration(messagesFile);
 
         // Завантажити дефолтні повідомлення та злити їх з існуючими
-        InputStream defStream = plugin.getResource(fileName);
-        if (defStream != null) {
-            YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(
-                    new InputStreamReader(defStream, StandardCharsets.UTF_8));
-            messages.setDefaults(defConfig);
+        if (ConfigUtil.updateConfig(plugin, fileName, messages, messagesFile)) {
+            // Перезавантажуємо, якщо були зміни
+            messages = YamlConfiguration.loadConfiguration(messagesFile);
 
-            // Автоматичне злиття: додати нові ключі з JAR файлу, якщо їх немає в файлі
-            if (mergeMessages(messagesFile, defConfig)) {
-                plugin.getLogger().info("Додано нові ключі перекладів до " + fileName);
-            }
-        }
-    }
-
-    /**
-     * Злиття нових ключів з JAR файлу в існуючий файл перекладів
-     * 
-     * @param messagesFile  Файл перекладів на диску
-     * @param defaultConfig Конфігурація з JAR файлу
-     * @return true якщо були додані нові ключі
-     */
-    private boolean mergeMessages(File messagesFile, YamlConfiguration defaultConfig) {
-        boolean hasChanges = false;
-
-        try {
-            FileConfiguration existingConfig = YamlConfiguration.loadConfiguration(messagesFile);
-
-            // Перевірити всі ключі з JAR файлу
-            for (String key : defaultConfig.getKeys(true)) {
-                // Пропустити секції (не листові вузли)
-                if (defaultConfig.isConfigurationSection(key)) {
-                    continue;
-                }
-
-                // Якщо ключ відсутній у файлі - додати його
-                if (!existingConfig.contains(key)) {
-                    existingConfig.set(key, defaultConfig.get(key));
-                    hasChanges = true;
-
-                    if (plugin.getConfigManager().isDebugEnabled()) {
-                        plugin.getLogger().info("Додано новий ключ: " + key);
-                    }
+            // Якщо ще раз потрібні defaults, можна встановити їх
+            InputStream defStream = plugin.getResource(fileName);
+            if (defStream != null) {
+                try (InputStreamReader reader = new InputStreamReader(defStream, StandardCharsets.UTF_8)) {
+                    messages.setDefaults(YamlConfiguration.loadConfiguration(reader));
+                } catch (Exception ignored) {
                 }
             }
-
-            // Зберегти файл, якщо були зміни
-            if (hasChanges) {
-                existingConfig.save(messagesFile);
-                // Перезавантажити конфігурацію
-                messages = YamlConfiguration.loadConfiguration(messagesFile);
-            }
-
-        } catch (Exception e) {
-            plugin.getLogger().warning("Помилка при злитті перекладів: " + e.getMessage());
-            if (plugin.getConfigManager().isDebugEnabled()) {
-                e.printStackTrace();
+        } else {
+            // Якщо оновлення не було (ConfigUtil повернув false), просто встановлюємо
+            // дефолтні значення для пам'яті
+            InputStream defStream = plugin.getResource(fileName);
+            if (defStream != null) {
+                try (InputStreamReader reader = new InputStreamReader(defStream, StandardCharsets.UTF_8)) {
+                    messages.setDefaults(YamlConfiguration.loadConfiguration(reader));
+                } catch (Exception e) {
+                    plugin.getLogger().warning("Failed to set default messages: " + e.getMessage());
+                }
             }
         }
-
-        return hasChanges;
     }
 
     public String getMessage(String path) {
-        return messages.getString(path, "&cMessage not found: " + path);
+        return messages.getString(path, "<red>Message not found: " + path);
     }
 
     public String getMessage(String path, String... replacements) {
@@ -114,11 +81,11 @@ public class MessageManager {
     }
 
     public Component getComponent(String path) {
-        return LegacyComponentSerializer.legacyAmpersand().deserialize(getMessage(path));
+        return MiniMessage.miniMessage().deserialize(getMessage(path));
     }
 
     public Component getComponent(String path, String... replacements) {
-        return LegacyComponentSerializer.legacyAmpersand().deserialize(getMessage(path, replacements));
+        return MiniMessage.miniMessage().deserialize(getMessage(path, replacements));
     }
 
     public String getPrefix() {
@@ -126,12 +93,13 @@ public class MessageManager {
     }
 
     public Component getPrefixedComponent(String path) {
-        return LegacyComponentSerializer.legacyAmpersand()
-                .deserialize(getPrefix() + getMessage(path));
+        // Concatenate prefix string + message string, thendeserialize
+        // This assumes both are in MiniMessage format
+        return MiniMessage.miniMessage().deserialize(getPrefix() + getMessage(path));
     }
 
     public Component getPrefixedComponent(String path, String... replacements) {
-        return LegacyComponentSerializer.legacyAmpersand()
+        return MiniMessage.miniMessage()
                 .deserialize(getPrefix() + getMessage(path, replacements));
     }
 }

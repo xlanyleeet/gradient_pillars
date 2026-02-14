@@ -1,5 +1,6 @@
 package ua.xlany.gradientpillars.commands.subcommands.arena;
 
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
@@ -36,8 +37,10 @@ public class DeleteArenaCommand implements ArenaSubCommand {
 
         // Перевірити чи арена не використовується
         if (plugin.getGameManager().getGameByArena(arenaName) != null) {
-            player.sendMessage("§c§l✘ §cНеможливо видалити арену §e" + arenaName + "§c!");
-            player.sendMessage("§7  Арена зараз використовується в грі. Зачекай поки гра завершиться.");
+            player.sendMessage(MiniMessage.miniMessage()
+                    .deserialize("<red><bold>✘ <red>Неможливо видалити арену <yellow>" + arenaName + "<red>!"));
+            player.sendMessage(MiniMessage.miniMessage()
+                    .deserialize("<gray>  Арена зараз використовується в грі. Зачекай поки гра завершиться."));
             return true;
         }
 
@@ -45,11 +48,13 @@ public class DeleteArenaCommand implements ArenaSubCommand {
         boolean deleted = plugin.getArenaManager().deleteArena(arenaName);
 
         if (deleted) {
-            player.sendMessage("§a§l✔ §aАрену §e" + arenaName + " §aуспішно видалено!");
-            player.sendMessage("§7  Конфігурацію арени видалено з сервера.");
+            player.sendMessage(MiniMessage.miniMessage()
+                    .deserialize("<green><bold>✔ <green>Арену <yellow>" + arenaName + " <green>успішно видалено!"));
+            player.sendMessage(MiniMessage.miniMessage().deserialize("<gray>  Конфігурацію арени видалено з сервера."));
         } else {
-            player.sendMessage("§c§l✘ §cПомилка при видаленні арени §e" + arenaName + "§c!");
-            player.sendMessage("§7  Перевір логи сервера для деталей.");
+            player.sendMessage(MiniMessage.miniMessage()
+                    .deserialize("<red><bold>✘ <red>Помилка при видаленні арени <yellow>" + arenaName + "<red>!"));
+            player.sendMessage(MiniMessage.miniMessage().deserialize("<gray>  Перевір логи сервера для деталей."));
         }
 
         return true;

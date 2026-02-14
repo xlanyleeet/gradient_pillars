@@ -1,5 +1,6 @@
 package ua.xlany.gradientpillars.commands.subcommands.arena;
 
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
@@ -20,8 +21,10 @@ public class SetMaxPlayersCommand implements ArenaSubCommand {
     @Override
     public boolean execute(Player player, String[] args) {
         if (args.length < 2) {
-            player.sendMessage("§c§l✘ §cВкажи кількість гравців та назву арени!");
-            player.sendMessage("§7Використання: §e/gp arena maxplayers <кількість> <arena>");
+            player.sendMessage(
+                    MiniMessage.miniMessage().deserialize("<red><bold>✘ <red>Вкажи кількість гравців та назву арени!"));
+            player.sendMessage(MiniMessage.miniMessage()
+                    .deserialize("<gray>Використання: <yellow>/gp arena maxplayers <кількість> <arena>"));
             return true;
         }
 
@@ -29,11 +32,13 @@ public class SetMaxPlayersCommand implements ArenaSubCommand {
         try {
             maxPlayers = Integer.parseInt(args[0]);
             if (maxPlayers < 1) {
-                player.sendMessage("§c§l✘ §cМаксимальна кількість гравців має бути більше 0!");
+                player.sendMessage(MiniMessage.miniMessage()
+                        .deserialize("<red><bold>✘ <red>Максимальна кількість гравців має бути більше 0!"));
                 return true;
             }
             if (maxPlayers > 16) {
-                player.sendMessage("§c§l✘ §cМаксимальна кількість гравців не може перевищувати 16!");
+                player.sendMessage(MiniMessage.miniMessage()
+                        .deserialize("<red><bold>✘ <red>Максимальна кількість гравців не може перевищувати 16!"));
                 return true;
             }
         } catch (NumberFormatException e) {
@@ -45,19 +50,26 @@ public class SetMaxPlayersCommand implements ArenaSubCommand {
         Arena arena = plugin.getArenaManager().getArena(arenaName);
 
         if (arena == null) {
-            player.sendMessage("§c§l✘ §cАрени §e" + arenaName + " §cне існує!");
-            player.sendMessage("§7Створи арену: §e/gp arena create " + arenaName);
+            player.sendMessage(MiniMessage.miniMessage()
+                    .deserialize("<red><bold>✘ <red>Арени <yellow>" + arenaName + " <red>не існує!"));
+            player.sendMessage(
+                    MiniMessage.miniMessage().deserialize("<gray>Створи арену: <yellow>/gp arena create " + arenaName));
             return true;
         }
 
         if (maxPlayers < arena.getMinPlayers()) {
-            player.sendMessage("§c§l✘ §cМаксимальна кількість гравців не може бути менше мінімальної (" + arena.getMinPlayers() + ")!");
+            player.sendMessage(MiniMessage.miniMessage()
+                    .deserialize("<red><bold>✘ <red>Максимальна кількість гравців не може бути менше мінімальної ("
+                            + arena.getMinPlayers() + ")!"));
             return true;
         }
 
         arena.setMaxPlayers(maxPlayers);
-        player.sendMessage("§a§l✔ §aМаксимальну кількість гравців встановлено: §e" + maxPlayers + " §aдля арени §e" + arenaName);
-        player.sendMessage("§7  Не забудь зберегти арену: §e/gp arena save " + arenaName);
+        player.sendMessage(MiniMessage.miniMessage()
+                .deserialize("<green><bold>✔ <green>Максимальну кількість гравців встановлено: <yellow>" + maxPlayers
+                        + " <green>для арени <yellow>" + arenaName));
+        player.sendMessage(MiniMessage.miniMessage()
+                .deserialize("<gray>  Не забудь зберегти арену: <yellow>/gp arena save " + arenaName));
 
         plugin.getArenaManager().cacheArena(arena);
         return true;

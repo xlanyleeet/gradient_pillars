@@ -1,74 +1,110 @@
 # ========================================
-# Українська мова
+# Українська мова (Adventure MiniMessage)
 # ========================================
 
-prefix: "&8[&6Gradient Pillars&8]&r "
+prefix: "<gray>[<gradient:gold:yellow>Gradient Pillars</gradient><gray>]</gray> "
 
 # Команди
 commands:
-  no-permission: "&cУ вас немає прав для виконання цієї команди!"
-  player-only: "&cЦю команду можна виконати тільки як гравець!"
-  usage: "&cВикористання: &f{usage}"
-  reload: "&aКонфігурацію успішно перезавантажено!"
+  no-permission: "<red>У вас немає прав для виконання цієї команди!"
+  player-only: "<red>Цю команду можна виконати тільки як гравець!"
+  usage: "<red>Використання: <white>{usage}"
+  reload: "<green>Конфігурацію успішно перезавантажено!"
 
 # Хаб
 hub:
-  set: "&aХаб встановлено на вашій позиції!"
-  teleported: "&aВи телепортовані в хаб!"
+  set: "<green>Хаб встановлено на вашій позиції!"
+  teleported: "<green>Ви телепортовані в хаб!"
   
 # Гра
 game:
   join:
-    success: "&aВи приєдналися до гри!"
-    already-in-game: "&cВи вже в грі!"
-    game-full: "&cГра заповнена!"
-    already-started: "&cГра вже почалася! Зачекайте наступного раунду."
-    game-started: "&cГра вже почалася!"
+    success: "<green>Ви приєдналися до гри!"
+    already-in-game: "<red>Ви вже в грі!"
+    game-full: "<red>Гра заповнена!"
+    already-started: "<red>Гра вже почалася! Зачекайте наступного раунду."
+    game-started: "<red>Гра вже почалася!"
   
-  world-restoring: "&eСвіт відновлюється після попередньої гри. Зачекайте кілька секунд..."
+  world-restoring: "<yellow>Світ відновлюється після попередньої гри. Зачекайте кілька секунд..."
   
   leave:
-    success: "&aВи покинули гру!"
-    not-in-game: "&cВи не в грі!"
+    success: "<green>Ви покинули гру!"
+    not-in-game: "<red>Ви не в грі!"
   
   start:
-    countdown: "&eГра почнеться через &6{time} &eсекунд..."
-    started: "&aГра почалася! Удачі!"
-    not-enough-players: "&cНедостатньо гравців для початку гри!"
-    skip-wait: "&e{player} &aприскорив очікування! Гра почнеться через 10 секунд!"
+    countdown: "<yellow>Гра почнеться через <gold>{time} <yellow>секунд..."
+    started: "<green>Гра почалася! Удачі!"
+    not-enough-players: "<red>Недостатньо гравців для початку гри!"
+    skip-wait: "<yellow>{player} <green>прискорив очікування! Гра почнеться через 10 секунд!"
   
   end:
-    winner: "&6&l{player} &aпереміг!"
+    winner: "<gold><bold>{player} <green>переміг!"
     winner-title: "переміг!"
-    no-winner: "&cНічия! Немає переможця!"
-    game-ended: "&eГра завершена!"
+    no-winner: "<red>Нічия! Немає переможця!"
+    game-ended: "<yellow>Гра завершена!"
   
   death:
-    eliminated: "&c{player} був виключений!"
-    remaining: "&eЗалишилось гравців: &6{count}"
+    eliminated: "<red>{player} був виключений!"
+    remaining: "<yellow>Залишилось гравців: <gold>{count}"
   
   items:
-    received: "&aВи отримали предмет: &6{item}"
-    next-in: "&eНаступний предмет через &6{time} &eсекунд"
+    received: "<green>Ви отримали предмет: <gold>{item}"
+    next-in: "<yellow>Наступний предмет через <gold>{time} <yellow>секунд"
+    spectator_menu:
+        name: "<gold>Меню спостерігача"
+        description: "<gray>Правий клік щоб телепортуватися до гравців"
+    leave_game:
+        name: "<red>Покинути гру"
   
   spectator:
-    now-spectating: "&eТепер ви спостерігач!"
+    join: "<yellow>Тепер ви спостерігач!"
+    now-spectating: "<yellow>Тепер ви спостерігач!"
   
-  build-limit: "&cНе можна будувати вище Y: &6{y}"
+  build-limit: "<red>Не можна будувати вище Y: <gold>{y}"
   
-  lobby:
-    leave-item: "&cПокинути арену"
-    skip-wait-item: "&e&lПропустити очікування &7(ПКМ)"
-    mode-selection-item: "&6&lОбрати режим гри &7(ПКМ)"
+  waiting:
+    leave-item: "<red>Покинути арену"
+    skip-wait-item: "<yellow><bold>Пропустити очікування <gray>(ПКМ)"
+    mode-selection-item: "<gold><bold>Обрати режим гри <gray>(ПКМ)"
   
   mode:
-    voted: "&aВи проголосували за режим: &6{mode}"
-    active: "&e&lРежим гри: &6&l{mode}\n&7{description}"
+    voted: "<green>Ви проголосували за режим: <gold>{mode}"
+    active: "<yellow><bold>Режим гри: <gold><bold>{mode}\n<gray>{description}"
+
+# Статистика
+stats:
+  header: "<gray><bold><gradient:gold:yellow> Статистика {player} </gradient><gray><bold>=========="
+  wins: "<yellow>Перемог: <green>{count}"
+  losses: "<yellow>Поразок: <red>{count}"
+  win-rate: "<yellow>Відсоток перемог: <gold>{rate}%"
+  not-found: "<red>Гравця не знайдено (перевірте правильність нікнейму)!"
 
 # GUI
 gui:
   arena-selection:
-    title: "&6&lВиберіть арену"
+    title: "<gold><bold>Виберіть арену"
+    next-page: "<yellow>Наступна сторінка \u2192"
+    previous-page: "<yellow>\u2190 Попередня сторінка"
+    item-name: "<yellow>{arena}"
+    
+    status:
+      available: "<green>Доступна"
+      starting: "<yellow>Починається"
+      in-progress: "<gold>Гра триває"
+      ending: "<light_purple>Завершення"
+      not-setup: "<red>Не налаштована"
+      unknown: "<gray>Невідомий статус"
+    
+    info:
+      players: "<gray>Гравців: <white>{current}<gray>/<white>{max}"
+      minimum: "<gray>Мінімум: <white>{min}"
+      countdown: "<gray>Відлік: <white>{time}с"
+      click-to-join: "<yellow>Натисни, щоб увійти!"
+      cannot-join: "<red>Не можна увійти"
+      unavailable: "<red>Недоступна"
+      missing: "<gray>Відсутні:"
+      
+      missing-pillars: "<gray>- Пілари"
   
   mode-selection:
     title: "Оберіть режим гри"
@@ -77,71 +113,69 @@ gui:
     click-to-select: "Клацніть щоб обрати"
     
     status:
-      available: "&aДоступна"
-      starting: "&eПочинається"
-      in-progress: "&6Гра в процесі"
-      ending: "&dЗавершується"
-      not-setup: "&cАрена не налаштована"
-      unknown: "&7Невідомий стан"
+      available: "<green>Доступна"
+      starting: "<yellow>Починається"
+      in-progress: "<gold>Гра в процесі"
+      ending: "<light_purple>Завершується"
+      not-setup: "<red>Арена не налаштована"
+      unknown: "<gray>Невідомий стан"
     
     info:
-      players: "&7Гравці: &f{current}&7/&f{max}"
-      minimum: "&7Мінімум: &f{min}"
-      countdown: "&7Відлік: &f{time}с"
-      click-to-join: "&eНатисніть, щоб приєднатись!"
-      cannot-join: "&cНе можна приєднатись"
-      unavailable: "&cНедоступна для гри"
-      missing: "&7Відсутні:"
-      missing-pillars: "&7- Пілари"
-      missing-lobby: "&7- Лобі"
-  
+      players: "<gray>Гравці: <white>{current}<gray>/<white>{max}"
+      minimum: "<gray>Мінімум: <white>{min}"
+      countdown: "<gray>Відлік: <white>{time}с"
+      click-to-join: "<yellow>Натисніть, щоб приєднатись!"
+      cannot-join: "<red>Не можна приєднатись"
+      unavailable: "<red>Недоступна для гри"
+      missing: "<gray>Відсутні:"
+      missing-pillars: "<gray>- Пілари"
+
 # Режими гри
 mode:
   normal:
     name: "Звичайний"
-    description: "Стандартний режим гри"
+    description: "Класичний режим гри"
   rising-lava:
-    name: "Підняття лави"
-    description: "Лава поступово піднімається догори"
+    name: "Лава піднімається"
+    description: "Лава піднімається знизу! Піднімайся швидше!"
   two-rows-hearts:
-    name: "2 ряди сердець"
-    description: "Подвійне здоров'я - 40 очок здоров'я"
+    name: "Подвійне здоров'я"
+    description: "У кожного 40 HP (2 ряди сердець)"
   one-heart:
-    name: "1 серце"
-    description: "Екстремальний режим - всього 2 очки здоров'я"
+    name: "Одне серце"
+    description: "Хардкор! У кожного тільки 1 серце (2 HP)"
   jump-boost:
-    name: "Стрибок 1"
-    description: "Постійний ефект стрибка I рівня"
+    name: "Високий стрибок"
+    description: "Нескінченний ефект стрибучості"
   no-jump:
-    name: "Без стрибка"
-    description: "Гравці не можуть стрибати взагалі"
+    name: "Без стрибків"
+    description: "Стрибки вимкнені! Використовуй блоки мудро."
   darkness:
     name: "Темрява"
-    description: "Обмежена видимість - лише пару блоків навколо"
+    description: "Обмежена видимість з ефектом сліпоти"
 
 # Арени
 arena:
-  created: "&aАрену &6{arena} &aуспішно створено! Використовуйте /gp setup для налаштування."
-  already-exists: "&cАрена &6{arena} &cвже існує!"
-  not-found: "&cАрену &6{arena} &cне знайдено!"
+  created: "<green>Арену <gold>{arena} <green>успішно створено! Використовуйте /gp setup для налаштування."
+  already-exists: "<red>Арена <gold>{arena} <red>вже існує!"
+  not-found: "<red>Арену <gold>{arena} <red>не знайдено!"
   
   setup:
-    pillar-added: "&aСтовп #{number} додано на вашій позиції!"
-    lobby-set: "&aЛобі встановлено на вашій позиції!"
-    spectator-set: "&aТочка спостерігача встановлена на вашій позиції!"
-    world-set: "&aСвіт арени встановлено: &6{world}"
-    min-players-set: "&aМінімальна кількість гравців встановлена: &6{count}"
-    max-players-set: "&aМаксимальна кількість гравців встановлена: &6{count}"
-    max-y-set: "&aМаксимальну висоту встановлено: &6{y}"
-    min-y-set: "&aМінімальну висоту (поріг смерті) встановлено: &6{y}"
-    saved: "&aАрена збережена у файл arenas/{arena}.yml!"
+    pillar-added: "<green>Стовп #{number} додано на вашій позиції!"
+    spectator-set: "<green>Точка спостерігача встановлена на вашій позиції!"
+    world-set: "<green>Світ арени встановлено: <gold>{world}"
+    min-players-set: "<green>Мінімальна кількість гравців встановлена: <gold>{count}"
+    max-players-set: "<green>Максимальна кількість гравців встановлена: <gold>{count}"
+    max-y-set: "<green>Максимальну висоту встановлено: <gold>{y}"
+    min-y-set: "<green>Мінімальну висоту (поріг смерті) встановлено: <gold>{y}"
+    saved: "<green>Арена збережена у файл arenas/{arena}.yml!"
     
   backup:
-    creating: "&eСтворення резервної копії світу..."
-    created: "&aРезервна копія створена!"
-    restoring: "&eВідновлення світу..."
-    restored: "&aСвіт відновлено!"
-    failed: "&cПомилка при роботі з резервною копією!"
+    creating: "<yellow>Створення резервної копії світу..."
+    created: "<green>Резервна копія створена!"
+    restoring: "<yellow>Відновлення світу..."
+    restored: "<green>Світ відновлено!"
+    failed: "<red>Помилка при роботі з резервною копією!"
 
 # BossBar
 bossbar:
@@ -151,8 +185,8 @@ bossbar:
 
 # Помилки
 errors:
-  general: "&cВиникла помилка! Перевірте консоль."
-  arena-not-found: "&cАрену не знайдено!"
-  arena-not-setup: "&cАрена не налаштована!"
-  world-not-found: "&cСвіт не знайдено!"
-  invalid-number: "&cНеправильний номер! Використовуйте число від 1 і вище."
+  general: "<red>Виникла помилка! Перевірте консоль."
+  arena-not-found: "<red>Арену не знайдено!"
+  arena-not-setup: "<red>Арена не налаштована!"
+  world-not-found: "<red>Світ не знайдено!"
+  invalid-number: "<red>Неправильний номер! Використовуйте число від 1 і вище."

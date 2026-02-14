@@ -1,11 +1,13 @@
 package ua.xlany.gradientpillars.gui;
 
+import com.github.stefvanschie.inventoryframework.gui.GuiItem;
+import com.github.stefvanschie.inventoryframework.gui.type.ChestGui;
+import com.github.stefvanschie.inventoryframework.pane.StaticPane;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import org.bukkit.Bukkit;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import ua.xlany.gradientpillars.GradientPillars;
@@ -35,23 +37,42 @@ public class GameModeSelectionGUI {
     public void open(Player player) {
         Component title = plugin.getMessageManager().getComponent("gui.mode-selection.title");
 
-        Inventory inventory = Bukkit.createInventory(
-                new GameModeSelectionHolder(game),
-                27,
-                title.color(NamedTextColor.DARK_GREEN).decorate(TextDecoration.BOLD));
+        ChestGui gui = new ChestGui(3, LegacyComponentSerializer.legacySection().serialize(title.color(NamedTextColor.DARK_GREEN).decorate(TextDecoration.BOLD)));
+        gui.setOnGlobalClick(event -> event.setCancelled(true));
+
+        StaticPane pane = new StaticPane(0, 1, 9, 1); // Row 2 (index 1)
 
         // Отримати підрахунок голосів
         Map<GameMode, Integer> voteCounts = game.getVoteCounts();
 
-        // Розмістити режими в один ряд по центру (слоти 10-16)
-        int slot = 10;
+        // Розмістити режими в один ряд по центру (зсув на 1 слот, щоб почати з 2-го
+        // слота рядка, як у старому коді (слот 10))
+        // Старий код: slot = 10 -> це x=1, y=1
+        int x = 1;
         for (GameMode mode : GameMode.values()) {
             ItemStack item = createModeItem(mode, voteCounts.getOrDefault(mode, 0), player);
-            inventory.setItem(slot, item);
-            slot++;
+
+            GuiItem guiItem = new GuiItem(item, event -> {
+                // Зареєструвати голос
+                game.voteForMode(player.getUniqueId(), mode);
+
+                // Повідомити гравця
+                String modeName = plugin.getMessageManager().getMessage(mode.getTranslationKey() + ".name");
+                player.sendMessage(plugin.getMessageManager().getPrefixedComponent(
+                        "game.mode.voted",
+                        "mode", modeName));
+
+                // Оновити GUI для відображення нового голосу
+                // Re-opening triggers a new inventory, effectively "updating" it
+                new GameModeSelectionGUI(plugin, game).open(player);
+            });
+
+            pane.addItem(guiItem, x, 0);
+            x++;
         }
 
-        player.openInventory(inventory);
+        gui.addPane(pane);
+        gui.show(player);
     }
 
     /**

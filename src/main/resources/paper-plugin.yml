@@ -1,25 +1,29 @@
 name: GradientPillars
-version: "${project.version}"
+version: '${project.version}'
 main: ua.xlany.gradientpillars.GradientPillars
-api-version: "1.21"
+api-version: '1.21'
 author: xlanyleeet
 description: Fortune Pillars minigame plugin
 website: https://github.com/xlanyleeet
-softdepend: [PlaceholderAPI, Vault]
-
-commands:
-  gp:
-    description: Main command for Gradient Pillars
-    usage: /gp <play|join|leave|arena|reload>
-    aliases: [gradientpillars, pillars]
+dependencies:
+  server:
+    PlaceholderAPI:
+      load: BEFORE
+      required: false
+    Vault:
+      load: BEFORE
+      required: false
 
 permissions:
   gradientpillars.admin:
     description: Allows access to admin commands
     default: op
+  gradientpillars.command:
+    description: Allows use of the main command
+    default: "true"
   gradientpillars.play:
     description: Allows joining games
-    default: true
+    default: "true"
   gradientpillars.skipwait:
     description: Allows skipping countdown with clock item
-    default: false
+    default: op
