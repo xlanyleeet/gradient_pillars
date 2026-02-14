@@ -6,7 +6,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.Bukkit;
 import ua.xlany.gradientpillars.GradientPillars;
 
 public class ChatListener implements Listener {
@@ -20,15 +19,15 @@ public class ChatListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerChat(AsyncChatEvent event) {
         Player player = event.getPlayer();
-
+        
         // Отримуємо текст повідомлення
         String message = PlainTextComponentSerializer.plainText().serialize(event.message());
 
         // Скасовуємо стандартний чат
         event.setCancelled(true);
 
-        // Обробляємо через ChatManager (використовуємо синхронний шедулер для безпеки)
-        Bukkit.getScheduler().runTask(plugin, () -> {
+        // Обробляємо через ChatManager (синхронно, бо працюємо з Game)
+        plugin.getServer().getScheduler().runTask(plugin, () -> {
             plugin.getChatManager().handleArenaChat(player, message);
         });
     }

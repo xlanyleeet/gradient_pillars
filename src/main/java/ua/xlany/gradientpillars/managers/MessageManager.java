@@ -1,7 +1,6 @@
 package ua.xlany.gradientpillars.managers;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -101,7 +100,7 @@ public class MessageManager {
     }
 
     public String getMessage(String path) {
-        return messages.getString(path, "<red>Message not found: " + path);
+        return messages.getString(path, "&cMessage not found: " + path);
     }
 
     public String getMessage(String path, String... replacements) {
@@ -115,25 +114,11 @@ public class MessageManager {
     }
 
     public Component getComponent(String path) {
-        return MiniMessage.miniMessage().deserialize(getMessage(path));
+        return LegacyComponentSerializer.legacyAmpersand().deserialize(getMessage(path));
     }
 
     public Component getComponent(String path, String... replacements) {
-        return MiniMessage.miniMessage().deserialize(getMessage(path, replacements));
-    }
-
-    /**
-     * Helper to get a legacy string for APIs that don't support Components
-     */
-    public String getLegacyString(String path, String... replacements) {
-        return LegacyComponentSerializer.legacySection().serialize(getComponent(path, replacements));
-    }
-
-    /**
-     * Helper to deserialize legacy strings (e.g. from Vault)
-     */
-    public Component deserializeLegacy(String text) {
-        return LegacyComponentSerializer.legacyAmpersand().deserialize(text);
+        return LegacyComponentSerializer.legacyAmpersand().deserialize(getMessage(path, replacements));
     }
 
     public String getPrefix() {
@@ -141,10 +126,12 @@ public class MessageManager {
     }
 
     public Component getPrefixedComponent(String path) {
-        return MiniMessage.miniMessage().deserialize(getPrefix() + getMessage(path));
+        return LegacyComponentSerializer.legacyAmpersand()
+                .deserialize(getPrefix() + getMessage(path));
     }
 
     public Component getPrefixedComponent(String path, String... replacements) {
-        return MiniMessage.miniMessage().deserialize(getPrefix() + getMessage(path, replacements));
+        return LegacyComponentSerializer.legacyAmpersand()
+                .deserialize(getPrefix() + getMessage(path, replacements));
     }
 }

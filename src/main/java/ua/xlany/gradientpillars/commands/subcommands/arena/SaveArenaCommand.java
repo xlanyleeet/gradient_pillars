@@ -39,6 +39,11 @@ public class SaveArenaCommand implements ArenaSubCommand {
             player.sendMessage("§7  Не встановлено світ! Використай: §e/gp arena setworld " + arenaName);
             return true;
         }
+        if (arena.getLobby() == null) {
+            player.sendMessage("§c§l✘ §cАрену не налаштовано!");
+            player.sendMessage("§7  Не встановлено лобі! Використай: §e/gp arena lobby " + arenaName);
+            return true;
+        }
         if (arena.getSpectator() == null) {
             player.sendMessage("§c§l✘ §cАрену не налаштовано!");
             player.sendMessage("§7  Не встановлено точку спостерігача! Використай: §e/gp arena spectator " + arenaName);

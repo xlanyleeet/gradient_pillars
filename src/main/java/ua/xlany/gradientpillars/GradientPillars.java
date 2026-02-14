@@ -1,14 +1,12 @@
 package ua.xlany.gradientpillars;
 
-import java.util.List;
-
-import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import ua.xlany.gradientpillars.chat.ChatManager;
 import ua.xlany.gradientpillars.commands.GPCommand;
 import ua.xlany.gradientpillars.integration.GradientPillarsPlaceholders;
 import ua.xlany.gradientpillars.listeners.ChatListener;
+import ua.xlany.gradientpillars.listeners.GUIListener;
 import ua.xlany.gradientpillars.listeners.GameListener;
 import ua.xlany.gradientpillars.listeners.LobbyListener;
 import ua.xlany.gradientpillars.listeners.PlayerListener;
@@ -50,24 +48,22 @@ public class GradientPillars extends JavaPlugin {
         statsManager = new StatsManager(this, databaseManager);
 
         worldManager = new WorldManager(this);
-
         arenaManager = new ArenaManager(this);
         gameManager = new GameManager(this);
         itemManager = new ItemManager(this);
         chatManager = new ChatManager(this);
 
-        // Реєстрація команд через Paper API
-        @SuppressWarnings("UnstableApiUsage")
+        // Реєстрація команд
         GPCommand gpCommand = new GPCommand(this);
-        this.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> {
-            event.registrar().register("gp", "Main command for GradientPillars", List.of("gradientpillars", "pillars"), gpCommand);
-        });
+        getCommand("gp").setExecutor(gpCommand);
+        getCommand("gp").setTabCompleter(gpCommand);
 
         // Реєстрація слухачів подій
         getServer().getPluginManager().registerEvents(new PlayerListener(this), this);
         getServer().getPluginManager().registerEvents(new GameListener(this), this);
         getServer().getPluginManager().registerEvents(new LobbyListener(this), this);
         getServer().getPluginManager().registerEvents(new WorldListener(this), this);
+        getServer().getPluginManager().registerEvents(new GUIListener(this), this);
         getServer().getPluginManager().registerEvents(new ChatListener(this), this);
 
         // PlaceholderAPI інтеграція

@@ -1,7 +1,6 @@
 package ua.xlany.gradientpillars.listeners;
 
 import org.bukkit.Material;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -9,6 +8,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import ua.xlany.gradientpillars.GradientPillars;
+import ua.xlany.gradientpillars.gui.GameModeSelectionGUI;
 import ua.xlany.gradientpillars.models.Game;
 import ua.xlany.gradientpillars.models.GameState;
 
@@ -34,6 +34,15 @@ public class LobbyListener implements Listener {
         }
 
         Game game = plugin.getGameManager().getPlayerGame(player.getUniqueId());
+
+        // Перевірка на предмет вибору режиму (компас - slot 0)
+        if (item.getType() == Material.COMPASS) {
+            if (game != null && (game.getState() == GameState.WAITING || game.getState() == GameState.COUNTDOWN)) {
+                event.setCancelled(true);
+                GameModeSelectionGUI gui = new GameModeSelectionGUI(plugin, game);
+                gui.open(player);
+            }
+        }
 
         // Перевірка на предмет виходу з лобі
         if (item.getType() == Material.RED_BED) {
@@ -61,7 +70,7 @@ public class LobbyListener implements Listener {
 
                 // Повідомити всіх гравців
                 for (java.util.UUID playerId : game.getPlayers()) {
-                    Player p = Bukkit.getPlayer(playerId);
+                    Player p = org.bukkit.Bukkit.getPlayer(playerId);
                     if (p != null) {
                         p.sendMessage(plugin.getMessageManager().getPrefixedComponent(
                                 "game.start.skip-wait", "player", player.getName()));

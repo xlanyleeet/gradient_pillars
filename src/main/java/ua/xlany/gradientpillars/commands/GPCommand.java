@@ -1,17 +1,16 @@
 package ua.xlany.gradientpillars.commands;
 
-import io.papermc.paper.command.brigadier.BasicCommand;
-import io.papermc.paper.command.brigadier.CommandSourceStack;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import ua.xlany.gradientpillars.GradientPillars;
 import ua.xlany.gradientpillars.commands.subcommands.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,8 +19,7 @@ import java.util.Map;
  * Головний обробник команди /gp
  * Делегує виконання підкомандам
  */
-@SuppressWarnings("UnstableApiUsage")
-public class GPCommand implements BasicCommand {
+public class GPCommand implements CommandExecutor, TabCompleter {
 
     private final Map<String, SubCommand> subCommands;
 
@@ -35,7 +33,6 @@ public class GPCommand implements BasicCommand {
         registerSubCommand(new ArenaCommand(plugin));
         registerSubCommand(new SetHubCommand(plugin));
         registerSubCommand(new ReloadCommand(plugin));
-        registerSubCommand(new StatsCommand(plugin));
     }
 
     private void registerSubCommand(SubCommand subCommand) {
@@ -43,12 +40,12 @@ public class GPCommand implements BasicCommand {
     }
 
     @Override
-    public void execute(@NotNull CommandSourceStack stack, @NotNull String[] args) {
-        CommandSender sender = stack.getSender();
+    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command,
+            @NotNull String label, @NotNull String[] args) {
 
         if (args.length == 0) {
             sendUsage(sender);
-            return;
+            return true;
         }
 
         String subCommandName = args[0].toLowerCase();
@@ -56,32 +53,29 @@ public class GPCommand implements BasicCommand {
 
         if (subCommand == null) {
             sendUsage(sender);
-            return;
+            return true;
         }
 
         // Передаємо аргументи без назви підкоманди
         String[] subArgs = Arrays.copyOfRange(args, 1, args.length);
-        subCommand.execute(sender, subArgs);
+        return subCommand.execute(sender, subArgs);
     }
 
     private void sendUsage(CommandSender sender) {
-        var mm = MiniMessage.miniMessage();
-        Component separator = mm.deserialize("<yellow><bold><strikethrough>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-
-        sender.sendMessage(separator);
-        sender.sendMessage(mm.deserialize("<gold><bold>Gradient Pillars <dark_gray>| <white>Команди"));
-        sender.sendMessage(separator);
-
+        sender.sendMessage("§e§l━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+        sender.sendMessage("§6§lGradient Pillars §8| §fКоманди");
+        sender.sendMessage("§e§l━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
         for (SubCommand subCommand : subCommands.values()) {
-            sender.sendMessage(
-                    mm.deserialize("<yellow>" + subCommand.getUsage() + " <gray>- " + subCommand.getDescription()));
+            sender.sendMessage("§e" + subCommand.getUsage() + " §7- " + subCommand.getDescription());
         }
-        sender.sendMessage(separator);
+        sender.sendMessage("§e§l━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
     }
 
+    @Nullable
     @Override
-    public @NotNull Collection<String> suggest(@NotNull CommandSourceStack stack, @NotNull String[] args) {
-        CommandSender sender = stack.getSender();
+    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command,
+            @NotNull String alias, @NotNull String[] args) {
+
         List<String> completions = new ArrayList<>();
 
         if (args.length == 1) {
