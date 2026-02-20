@@ -94,16 +94,16 @@ public class Game {
         return true;
     }
 
+    public void addSpectator(UUID playerId) {
+        players.add(playerId); // Add to players list to track them in game
+        spectators.add(playerId);
+    }
+
     public void removePlayer(UUID playerId) {
         players.remove(playerId);
         alivePlayers.remove(playerId);
         spectators.remove(playerId);
         pillarAssignments.remove(playerId);
-    }
-
-    public void addSpectator(UUID playerId) {
-        spectators.add(playerId);
-        players.add(playerId); // Spectators are still considered "in the game" session
     }
 
     public void removeSpectator(UUID playerId) {

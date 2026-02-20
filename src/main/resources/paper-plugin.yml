@@ -1,6 +1,7 @@
 name: GradientPillars
 version: '${project.version}'
 main: ua.xlany.gradientpillars.GradientPillars
+loader: ua.xlany.gradientpillars.GradientPillarsLoader
 api-version: '1.21'
 author: xlanyleeet
 description: Fortune Pillars minigame plugin

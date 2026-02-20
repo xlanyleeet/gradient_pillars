@@ -91,8 +91,20 @@ public class GameManager {
         } else {
             // Якщо гра існує - перевірити чи можна до неї приєднатись
 
-            // Заборонити вхід під час ACTIVE, ENDING, RESTORING
-            if (game.getState() == GameState.ACTIVE || game.getState() == GameState.ENDING) {
+            // Якщо гра активна - дозволити приєднатись як глядач
+            if (game.getState() == GameState.ACTIVE) {
+                if (arena.getSpectator() == null) {
+                    player.sendMessage(
+                            plugin.getMessageManager().getPrefixedComponent("errors.spectator-spawn-not-set"));
+                    return false;
+                }
+
+                joinAsSpectator(player, game);
+                return true;
+            }
+
+            // Заборонити вхід під час ENDING, RESTORING
+            if (game.getState() == GameState.ENDING) {
                 player.sendMessage(plugin.getMessageManager().getPrefixedComponent("game.join.already-started"));
                 return false;
             }
@@ -191,6 +203,40 @@ public class GameManager {
         }
 
         return true;
+    }
+
+    private void joinAsSpectator(Player player, Game game) {
+        playerGames.put(player.getUniqueId(), game);
+        game.addSpectator(player.getUniqueId());
+
+        Arena arena = plugin.getArenaManager().getArena(game.getArenaName());
+
+        // Очистити інвентар та ефекти
+        player.getInventory().clear();
+        player.getActivePotionEffects().forEach(effect -> player.removePotionEffect(effect.getType()));
+        player.setHealth(20.0);
+        player.setFoodLevel(20);
+
+        // Телепортувати до точки спостерігача
+        if (arena.getSpectator() != null) {
+            Location specLoc = arena.getSpectator().clone();
+            // Ensure world is set if missing (can happen with file loading)
+            if (specLoc.getWorld() == null && arena.getWorldName() != null) {
+                specLoc.setWorld(Bukkit.getWorld(arena.getWorldName()));
+            }
+
+            if (specLoc.getWorld() != null) {
+                player.teleport(specLoc);
+            }
+        }
+
+        // Встановити режим спостерігача
+        player.setGameMode(GameMode.SPECTATOR);
+
+        // Дати предмет для виходу
+        giveLeaveItem(player);
+
+        player.sendMessage(plugin.getMessageManager().getPrefixedComponent("game.spectator.now-spectating"));
     }
 
     public void leaveGame(Player player) {
@@ -639,7 +685,7 @@ public class GameManager {
      * @return гра або null якщо не знайдено
      */
     public Game getGameByArena(String arenaName) {
-        return games.get(arenaName);
+        return findGameByArena(arenaName);
     }
 
     private void giveLeaveItem(Player player) {

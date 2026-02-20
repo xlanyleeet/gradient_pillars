@@ -1,10 +1,7 @@
 package ua.xlany.gradientpillars.gui;
 
-import com.github.stefvanschie.inventoryframework.gui.GuiItem;
-import com.github.stefvanschie.inventoryframework.gui.type.ChestGui;
-import com.github.stefvanschie.inventoryframework.pane.PaginatedPane;
-import com.github.stefvanschie.inventoryframework.pane.StaticPane;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -13,11 +10,19 @@ import ua.xlany.gradientpillars.GradientPillars;
 import ua.xlany.gradientpillars.models.Arena;
 import ua.xlany.gradientpillars.models.Game;
 import ua.xlany.gradientpillars.models.GameState;
+import xyz.xenondevs.invui.gui.Gui;
+import xyz.xenondevs.invui.gui.PagedGui;
+import xyz.xenondevs.invui.gui.structure.Markers;
+import xyz.xenondevs.invui.item.Item;
+import xyz.xenondevs.invui.item.ItemProvider;
+import xyz.xenondevs.invui.item.builder.ItemBuilder;
+import xyz.xenondevs.invui.item.impl.SimpleItem;
+import xyz.xenondevs.invui.item.impl.controlitem.PageItem;
+import xyz.xenondevs.invui.window.Window;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 
 public class ArenaSelectionGUI {
 
@@ -29,72 +34,60 @@ public class ArenaSelectionGUI {
 
     public void open(Player player) {
         List<Arena> arenas = new ArrayList<>(plugin.getArenaManager().getArenas());
-        arenas.sort(Comparator.comparing(Arena::getName)); // Sort alphabetically for consistency
+        arenas.sort(Comparator.comparing(Arena::getName));
 
         Component title = plugin.getMessageManager().getComponent("gui.arena-selection.title");
 
-        // Create GUI (6 rows to accommodate pagination controls if needed)
-        ChestGui gui = new ChestGui(6, LegacyComponentSerializer.legacySection().serialize(title));
-
-        // Disable item interactions
-        gui.setOnGlobalClick(event -> event.setCancelled(true));
-
-        // Create a paginated pane for arenas
-        PaginatedPane pages = new PaginatedPane(0, 0, 9, 5); // 9x5 area
-
-        List<GuiItem> items = new ArrayList<>();
+        List<Item> items = new ArrayList<>();
         for (Arena arena : arenas) {
             Game game = plugin.getGameManager().getGameByArena(arena.getName());
             ItemStack itemStack = createArenaItem(arena, game);
 
-            GuiItem guiItem = new GuiItem(itemStack, event -> {
-                // Determine if we can join
-                if (!arena.isSetup())
+            items.add(new SimpleItem(new ItemBuilder(itemStack), click -> {
+                if (!arena.isSetup()) {
                     return;
-
-                // Join game logic
-                player.closeInventory();
+                }
                 plugin.getGameManager().joinGame(player, arena.getName());
-            });
-
-            items.add(guiItem);
+            }));
         }
 
-        pages.populateWithGuiItems(items);
-        gui.addPane(pages);
+        Gui gui = PagedGui.items()
+                .setStructure(
+                        "x x x x x x x x x",
+                        "x x x x x x x x x",
+                        "x x x x x x x x x",
+                        "x x x x x x x x x",
+                        "x x x x x x x x x",
+                        "# # # < # > # # #")
+                .addIngredient('x', Markers.CONTENT_LIST_SLOT_HORIZONTAL)
+                .addIngredient('<', new PageItem(false) {
+                    @Override
+                    public ItemProvider getItemProvider(PagedGui<?> gui) {
+                        ItemBuilder builder = new ItemBuilder(Material.ARROW);
+                        builder.setDisplayName(LegacyComponentSerializer.legacySection().serialize(
+                                plugin.getMessageManager().getComponent("gui.arena-selection.previous-page")));
+                        return builder;
+                    }
+                })
+                .addIngredient('>', new PageItem(true) {
+                    @Override
+                    public ItemProvider getItemProvider(PagedGui<?> gui) {
+                        ItemBuilder builder = new ItemBuilder(Material.ARROW);
+                        builder.setDisplayName(LegacyComponentSerializer.legacySection().serialize(
+                                plugin.getMessageManager().getComponent("gui.arena-selection.next-page")));
+                        return builder;
+                    }
+                })
+                .setContent(items)
+                .build();
 
-        // Add navigation controls if multiple pages
-        if (pages.getPages() > 1) {
-            StaticPane navigation = new StaticPane(0, 5, 9, 1);
+        Window window = Window.single()
+                .setViewer(player)
+                .setTitle(LegacyComponentSerializer.legacySection().serialize(title))
+                .setGui(gui)
+                .build();
 
-            ItemStack prevItem = new ItemStack(Material.ARROW);
-            ItemMeta prevMeta = prevItem.getItemMeta();
-            prevMeta.displayName(plugin.getMessageManager().getComponent("gui.arena-selection.previous-page"));
-            prevItem.setItemMeta(prevMeta);
-
-            navigation.addItem(new GuiItem(prevItem, event -> {
-                if (pages.getPage() > 0) {
-                    pages.setPage(pages.getPage() - 1);
-                    gui.update();
-                }
-            }), 0, 0);
-
-            ItemStack nextItem = new ItemStack(Material.ARROW);
-            ItemMeta nextMeta = nextItem.getItemMeta();
-            nextMeta.displayName(plugin.getMessageManager().getComponent("gui.arena-selection.next-page"));
-            nextItem.setItemMeta(nextMeta);
-
-            navigation.addItem(new GuiItem(nextItem, event -> {
-                if (pages.getPage() < pages.getPages() - 1) {
-                    pages.setPage(pages.getPage() + 1);
-                    gui.update();
-                }
-            }), 8, 0);
-
-            gui.addPane(navigation);
-        }
-
-        gui.show(player);
+        window.open();
     }
 
     private ItemStack createArenaItem(Arena arena, Game game) {
@@ -142,7 +135,7 @@ public class ArenaSelectionGUI {
                     lore.add(Component.empty());
                     addLore(lore, "info.players", "current", String.valueOf(current), "max", String.valueOf(max));
                     lore.add(Component.empty());
-                    addLore(lore, "info.cannot-join");
+                    addLore(lore, "info.click-to-spectate"); // Changed key
                 }
                 case ENDING, RESTORING -> {
                     material = Material.PURPLE_CONCRETE;

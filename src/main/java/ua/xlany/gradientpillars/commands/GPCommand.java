@@ -69,14 +69,6 @@ public class GPCommand {
     private int executeSubCommand(CommandContext<CommandSourceStack> ctx, SubCommand sub, String[] args) {
         CommandSender sender = ctx.getSource().getSender();
 
-        // Дозволяємо виконання команди з консолі тільки для певних команд (наприклад,
-        // reload)
-        // Для більшості команд вимагаємо гравця, але перевірку краще робити всередині
-        // самої команди
-        // Тим не менш, для сумісності з існуючим кодом, де багато кастів (Player)
-        // sender,
-        // ми зробимо базову перевірку тут, але дозволимо reload для всіх.
-
         if (!(sender instanceof Player) && !(sub instanceof ReloadCommand)) {
             sender.sendMessage(MiniMessage.miniMessage().deserialize("<red>Only players can use this command!"));
             return 0;

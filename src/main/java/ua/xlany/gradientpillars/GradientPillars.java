@@ -10,6 +10,7 @@ import ua.xlany.gradientpillars.integration.GradientPillarsPlaceholders;
 import ua.xlany.gradientpillars.listeners.*;
 import ua.xlany.gradientpillars.managers.*;
 import ua.xlany.gradientpillars.utils.LibraryUtil;
+import xyz.xenondevs.invui.InvUI;
 
 public class GradientPillars extends JavaPlugin {
 
@@ -31,6 +32,7 @@ public class GradientPillars extends JavaPlugin {
     @Override
     public void onEnable() {
         instance = this;
+        InvUI.getInstance().setPlugin(this);
 
         // Завантаження бібліотек
         libraryUtil = new LibraryUtil(this);
